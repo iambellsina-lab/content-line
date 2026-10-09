@@ -32,7 +32,7 @@ It is not a substitute for reading the slides. It caught nothing on the run that
 first real set; **opening the images caught three defects on that same run**, all recorded in the
 code comments: a hairline under the source line instead of above it, an attribution orphaned
 below the question instead of under the quote, and tracked small caps drawing every full stop at
-cap height so that "H.E.A.L.E.D." came out as a row of floating dots. Every exit code in that run
+cap height so that an initialism like "T.H.I.S." came out as floating dots. Every exit code in that run
 was zero. Build the contact sheet and read it.
 
 ---
