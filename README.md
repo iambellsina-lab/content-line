@@ -9,6 +9,30 @@ commands yourself.
 
 ---
 
+## Getting it, and the first fifteen minutes
+
+```bash
+git clone https://github.com/iambellsina-lab/content-line.git
+cd content-line
+./setup.sh
+```
+
+`setup.sh` checks the four free things this needs and names whatever is missing. Nothing in it
+reaches the network except the one model download, which asks first and prints its size.
+
+Then, in order, and the order matters:
+
+1. **`SETUP.md`** once, start to finish. It is the install, the look, and the honest list of what
+   does not work yet.
+2. **`BRAND-INTAKE.md`**, fifteen minutes. Skip it and every clip comes out competent and generic.
+3. **`BEFORE-YOU-CUT.md`**, the three questions, for each recording. This is the step that pays for
+   itself, and the README explains below why.
+
+Fastest way to drive it: open this folder in Claude Code and say what you want. `skills/` holds the
+instructions that teach it the method. Running the commands by hand works identically.
+
+---
+
 ## The chain, in order
 
 Answer the three questions first. Then five commands.
