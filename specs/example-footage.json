@@ -1,0 +1,12 @@
+{
+  "_help": "A spec for putting captions on your own recording. Change source to your file, then work out the card times with pick_pulls.py. Run it from the kit folder: python3 bin/caption_video.py specs/example-footage.json",
+  "brand": "example-brand.json",
+  "source": "footage/my-recording.mp4",
+  "out": "../out/my-recording-pull.mp4",
+  "trim": {"start": 62.0, "end": 94.5},
+  "focus_x": 0.5,
+  "cards": [
+    {"text": "I say yes", "start": 64.0, "end": 65.1},
+    {"text": "to everything.", "start": 65.1, "end": 66.4, "accent": ["everything."]}
+  ]
+}

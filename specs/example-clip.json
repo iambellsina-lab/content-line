@@ -1,0 +1,10 @@
+{
+  "_help": "A content spec. It holds only what is said, never the look. The look comes from the brand file named below. Run it from the kit folder: python3 bin/make_clip.py specs/example-clip.json",
+  "brand": "example-brand.json",
+  "out": "../out/example-clip.mp4",
+  "cards": [
+    {"text": "Start small", "start": 0.0, "end": 1.2},
+    {"text": "ship it.", "start": 1.2, "end": 2.4, "accent": ["ship"]},
+    {"text": "Then look at what\nactually happened.", "start": 2.4, "end": 4.4}
+  ]
+}

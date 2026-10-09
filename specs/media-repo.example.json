@@ -1,0 +1,8 @@
+{
+  "_help": "Copy this file to media-repo.json in the kit folder (or in the folder you run from) and fill it in. Lines starting with an underscore are notes. Only local_clone is required if that folder is a clone of your GitHub repository, because owner, repo and branch are then read from it.",
+  "local_clone": "/path/to/your/clone-of-the-media-repo",
+  "owner": "your-github-username",
+  "repo": "your-media-repo",
+  "branch": "main",
+  "folder": "media"
+}

@@ -1,0 +1,48 @@
+{
+  "_help": "Copy this file to a new name (for example specs/mybrand.json), then change the values. Lines that start with an underscore are notes and are ignored. Everything here is optional: delete a line and the plain default is used.",
+
+  "name": "Example Brand",
+
+  "_help_font": "Your brand font as a .ttf or .otf file. Put the file next to this brand file, or in a fonts folder, and write its name here, for example \"fonts/Montserrat-Bold.ttf\". A font name that is installed on the computer also works, for example \"Arial Bold\". null means: use the best bold font this computer has. Captions always draw in this one font.",
+  "font": null,
+
+  "_help_colours": "Hex colours: a # and six characters. text_color is the caption colour. accent is the one highlighted word on a card, and the page counter on carousel slides.",
+  "text_color": "#FFFFFF",
+  "accent": "#2EC4B6",
+
+  "_help_background": "type gradient: top colour in \"from\", bottom colour in \"to\". type solid: one colour in \"color\". type image: a picture in \"path\" with \"motion\" of hold, drift or push.",
+  "background": {
+    "type": "gradient",
+    "from": "#0B1B2B",
+    "to": "#14324A",
+    "motion": "hold"
+  },
+
+  "_help_shadow": "A soft shadow keeps white type readable on any picture. Turn it off with \"enabled\": false for a flat, quiet look.",
+  "shadow": {
+    "enabled": true,
+    "dx": 5,
+    "dy": 6,
+    "alpha": 190,
+    "blur": 14
+  },
+
+  "_help_layout": "line_height is the space between lines (1.14 is normal). max_lines is the most lines one card may use. Carousel slides use max_lines_stills, and the first slide uses cover_lines. handle is the small footer text on carousel slides.",
+  "line_height": 1.14,
+  "max_lines": 2,
+  "max_lines_stills": 4,
+  "cover_lines": 3,
+  "handle": "@yourhandle",
+
+  "_help_footage": "Only used by caption_video.py, when captions go on your own footage. caption_position is lower, center or upper. caption_nudge moves the captions down (plus) or up (minus) by that many pixels.",
+  "caption_position": "lower",
+  "caption_nudge": 0,
+
+  "_help_preview": "These two lines make this brand file renderable on its own, so you can see your look before you make real content: python3 bin/make_clip.py specs/example-brand.json. Your real content goes in a separate spec file (see specs/example-clip.json).",
+  "out": "../out/brand-preview.mp4",
+  "cards": [
+    {"text": "This is your brand", "start": 0.0, "end": 1.4},
+    {"text": "in one font", "start": 1.4, "end": 2.6},
+    {"text": "and one accent word.", "start": 2.6, "end": 4.2, "accent": ["accent"]}
+  ]
+}

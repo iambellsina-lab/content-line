@@ -1,0 +1,49 @@
+{
+  "_help": "A cut list for bin/assemble_clip.py. One long recording, two finished clips out of it, each playing its segments IN THIS ORDER rather than in the order they were said. Run it from the kit folder: python3 bin/assemble_clip.py specs/example-edit.json. Add --dry-run first: it reads the arithmetic and reports any footage the two pieces share, and encodes nothing.",
+
+  "brand": "example-edit-style.json",
+
+  "_help_source": "The long recording. One file, however long: a 26 minute single take or an hour of podcast. Relative paths are looked for next to this spec first.",
+  "source": "footage/long-take.mov",
+
+  "_help_out": "Either give each piece its own \"out\", or give the batch an \"out_dir\" and each piece a \"filename\".",
+  "out_dir": "../out/example-batch",
+
+  "_help_times": "\"clip\" means card times are seconds into the FINISHED piece. \"source\" means they are seconds in the long recording, and they get mapped through the segment list for you, which is what a transcript of the whole recording gives you.",
+  "times": "clip",
+
+  "_help_keep_audio": "true leaves the sound exactly as recorded: no loudness normalisation, no filtering, no resampling. Use it when the audio was already processed somewhere else. false normalises to the style file's lufs and true_peak, measured on the assembled audio.",
+  "keep_audio": false,
+
+  "pieces": [
+    {
+      "piece": "one",
+      "filename": "the-hook-came-last",
+      "_why": "The hook is the answer she reached at minute 19 and the story that proves it is at minute 3. In spoken order this piece makes no sense, which is exactly why segments play in list order.",
+      "segments": [
+        {"start": 1140.2, "end": 1148.6, "note": "the hook"},
+        {"start": 182.4, "end": 195.0, "note": "the story that proves it"},
+        {"start": 1149.0, "end": 1156.2, "note": "the line that closes it"}
+      ],
+      "hook": {"text": "The one line that pins this clip", "hold": 4.0},
+      "cards": [
+        {"text": "two to four words", "start": 0.4, "end": 2.0},
+        {"text": "per card", "start": 2.0, "end": 3.4},
+        {"text": "and one accent word", "start": 3.4, "end": 5.2, "accent": ["accent"]}
+      ]
+    },
+    {
+      "piece": "two",
+      "filename": "a-second-clip-from-the-same-take",
+      "segments": [
+        {"start": 420.0, "end": 433.5},
+        {"start": 612.8, "end": 624.0}
+      ],
+      "hook_text": "A different argument from the same recording",
+      "caption_cards": [
+        {"text": "this piece reuses", "start": 0.3, "end": 1.9},
+        {"text": "none of the first one", "start": 1.9, "end": 3.6}
+      ]
+    }
+  ]
+}

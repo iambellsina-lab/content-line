@@ -1,0 +1,20 @@
+# The environment, rebuilt by setup.sh on whatever machine this lands on
+.venv/
+__pycache__/
+*.pyc
+
+# Working files and outputs. Nobody else's footage belongs in this repo.
+work/
+out/
+raw/
+models/
+*.mp4
+*.mov
+*.MOV
+*.wav
+*.srt
+
+# Internal research carrying account ids, not part of the product
+HOSTING-AND-PACKAGING.md
+
+.DS_Store
