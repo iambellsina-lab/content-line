@@ -128,8 +128,12 @@ On Windows, write `python --version`. It must say 3.10 or higher.
 ### The transcription model
 
 whisper-cli needs a model file, which is a separate download. The kit uses `ggml-base.en.bin`:
-**about 148 MB**, English only, free, downloaded once. `setup.sh --with-model` fetches it for you
-after asking.
+**about 148 MB**, English only, free, downloaded once. `bash setup.sh --with-model` fetches it for
+you, from this kit's own release page, and checks the size and the checksum before keeping it. No
+account is needed anywhere.
+
+The model is a mirror rather than our work: it is OpenAI's Whisper, converted to ggml for
+whisper.cpp by Georgi Gerganov, both MIT licensed. The release notes say so and link the original.
 
 **What breaks if you skip whisper and the model:** "footage to clips" cannot transcribe your
 recordings, so it cannot find the best moments. Everything else still works: clips from words,
@@ -140,11 +144,22 @@ from another tool), you can hand that to Claude instead and skip whisper complet
 
 ## 2. Install
 
-1. **Get the kit folder.** However it reached you, a shared Drive folder or a zip, put it
-   somewhere you will find again, for example `Documents/content-line`. From a Drive folder: open
-   it, click the folder name at the top, choose **Download**, and Drive gives you the zip.
-   Keep the folders inside exactly as they are: `bin`, `skills` and `specs` have to stay next to
-   `setup.sh` or nothing will find anything.
+1. **Get the kit folder.** If you have `git`, which is on every Mac with Xcode tools and most
+   Linux boxes:
+
+   ```bash
+   git clone https://github.com/iambellsina-lab/content-line.git
+   cd content-line
+   ```
+
+   No `git`, or you would rather not use it: open
+   <https://github.com/iambellsina-lab/content-line>, click the green **Code** button, choose
+   **Download ZIP**, and unzip it somewhere you will find again, for example
+   `Documents/content-line`.
+
+   Either way, keep the folders inside exactly as they are: `bin`, `skills` and `specs` have to
+   stay next to `setup.sh` or nothing will find anything. Cloning is the better of the two, because
+   `git pull` then brings you every later fix.
 2. **Open a terminal inside that folder.**
    - Mac: open Terminal, type `cd ` (with a space), drag the folder from Finder into the window,
      press Return.
