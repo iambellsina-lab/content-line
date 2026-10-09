@@ -1,0 +1,91 @@
+{
+  "_help": "The LOOK for bin/carousel_render.py: a brand file in, a carousel file in, finished PNG slides out. Copy this to a new name, change the values, keep it with your own work. Lines starting with an underscore are notes and are ignored. THIS FILE IS DELIBERATELY NEUTRAL: black type on white, one grey accent, system fonts. It is a starting point, not a house style, and it carries nobody's identity.",
+
+  "name": "Neutral carousel",
+
+  "_help_size": "The canvas. [1080, 1350] is the Instagram portrait carousel, which is the one that takes the most room in the feed. [1080, 1080] is the square. [1080, 1920] is the story. Change it here and every role lays out against the new height.",
+  "size": [1080, 1350],
+
+  "_help_min_contrast_default": "The WCAG 2.1 ratio every piece of type must clear against its own background unless that element overrides it. 4.5 is the normal text rule. An element may set its own \"min_contrast\": 3.0, which is the WCAG large text allowance, and that is the honest way to use a light brand colour at display size instead of quietly inventing a darker one. Anything that fails is refused, not drawn.",
+  "min_contrast_default": 4.5,
+
+  "_help_fonts": "Logical names on the left, a real file on this machine on the right. Roles below refer to the logical name, so swapping the whole brand's typeface is one edit here. \"index\" picks the face inside a .ttc collection, which holds several weights in one file. Every font here is checked and loaded before a single pixel is drawn, so a wrong path is one clear message at the start rather than a traceback partway through a batch. macOS keeps its own in /System/Library/Fonts/ and /System/Library/Fonts/Supplemental/.",
+  "fonts": {
+    "display": {"file": "/System/Library/Fonts/HelveticaNeue.ttc", "index": 1},
+    "body":    {"file": "/System/Library/Fonts/HelveticaNeue.ttc", "index": 0},
+    "small":   {"file": "/System/Library/Fonts/HelveticaNeue.ttc", "index": 10}
+  },
+
+  "_help_themes": "A brand may hold more than one theme, and a carousel file names the one it belongs to. That is on purpose: where a client is genuinely two brands that must not touch, putting them in one file with explicit names makes the mapping something you can read, and the renderer refuses a theme it does not know rather than falling back to the first one.",
+  "themes": {
+
+    "neutral": {
+
+      "_help_palette": "Every colour used anywhere in this theme, named. Roles refer to these names, never to a hex value, so a palette change moves the whole set at once.",
+      "palette": {
+        "bg": "#FFFFFF",
+        "ink": "#14181A",
+        "accent": "#4A5257",
+        "muted": "#5A6469"
+      },
+
+      "_help_margin": "The hard no-ink boundary, in pixels from each edge. After every slide is drawn, the ink layer's alpha channel is measured with getbbox() and the result is compared with these four numbers. That is a measurement off the rendered pixels, not a prediction from font metrics, and a slide whose ink crosses one is refused and the run exits non zero.",
+      "margin": {"top": 96, "right": 96, "bottom": 96, "left": 96},
+
+      "_help_footer": "Theme level page furniture. A role switches it on with \"footer\": true, or overrides any field by giving an object instead. \"y_top\" is the top of the line box. \"tracking\" is extra space between letters, which is what makes a small all caps wordmark read as a wordmark.",
+      "footer": {"text": "YOUR WORDMARK", "font": "small", "px": 22, "tracking": 3.0, "colour": "muted", "align": "center", "y_top": 1200, "min_contrast": 4.5},
+
+      "_help_counter": "\"{n}\" is this slide, \"{N}\" is the slide count. It tells a reader mid scroll how much is left, which is the cheapest thing you can do for completion rate.",
+      "counter": {"format": "{n}/{N}", "font": "small", "px": 22, "colour": "muted", "align": "right", "x": 984, "y_top": 1200, "min_contrast": 4.5},
+
+      "_help_swipe": "A cue for the cover only. Switch it on in the cover role and off everywhere else.",
+      "swipe": {"text": "SWIPE", "font": "small", "px": 22, "tracking": 3.0, "colour": "muted", "align": "right", "x": 984, "y_top": 1200, "min_contrast": 4.5},
+
+      "_help_roles": "A slide names its role and the role styles it. A cover, a body slide and a final slide can therefore look completely different while coming out of the same code. A role that a slide asks for and this theme does not define is refused.",
+      "roles": {
+
+        "cover": {
+          "_help": "\"bg\" picks the background from the palette, so a cover can invert while the body slides stay light. \"box\" is where the type block lives and it must sit inside the margins. \"anchor\" is center, top or bottom.",
+          "bg": "ink",
+          "box": {"x": 110, "y": 200, "w": 860, "h": 820},
+          "anchor": "center",
+          "text":   {"font": "display", "px": 92, "px_min": 54, "colour": "bg", "align": "center", "line_height": 1.14},
+          "attrib": {"font": "small", "px": 24, "colour": "bg", "align": "center", "line_height": 1.3, "tracking": 3.0, "gap_before": 54, "min_contrast": 4.5},
+          "rule":   {"enabled": true, "w": 120, "h": 5, "colour": "bg", "align": "center", "gap_before": 54, "min_contrast": 4.5},
+          "footer": {"colour": "bg"},
+          "swipe":  {"colour": "bg"}
+        },
+
+        "body": {
+          "_help": "The elements stack in this fixed order down the page: label, text, question, attrib, cta. Each is optional except text. \"gap_before\" is the space above that element and is ignored on whichever one happens to be first. \"px_min\" is a floor the shrink-to-fit will not go under.",
+          "bg": "bg",
+          "box": {"x": 110, "y": 200, "w": 860, "h": 820},
+          "anchor": "center",
+          "label":    {"font": "display", "px": 150, "colour": "accent", "align": "center", "line_height": 1.0, "min_contrast": 3.0},
+          "text":     {"font": "display", "px": 70, "px_min": 42, "colour": "ink", "align": "center", "line_height": 1.22, "gap_before": 44},
+          "question": {"font": "body", "px": 38, "colour": "ink", "align": "center", "line_height": 1.3, "gap_before": 44},
+          "attrib":   {"font": "small", "px": 24, "colour": "muted", "align": "center", "line_height": 1.3, "tracking": 3.0, "gap_before": 48, "min_contrast": 4.5},
+          "cta":      {"font": "body", "px": 36, "colour": "accent", "align": "center", "line_height": 1.26, "gap_before": 48, "min_contrast": 4.5},
+          "footer": true,
+          "counter": true
+        },
+
+        "final": {
+          "bg": "bg",
+          "box": {"x": 110, "y": 200, "w": 860, "h": 820},
+          "anchor": "center",
+          "text":     {"font": "display", "px": 64, "px_min": 40, "colour": "ink", "align": "center", "line_height": 1.22},
+          "question": {"font": "body", "px": 36, "colour": "muted", "align": "center", "line_height": 1.3, "gap_before": 46, "min_contrast": 4.5},
+          "cta":      {"font": "display", "px": 44, "colour": "ink", "align": "center", "line_height": 1.22, "gap_before": 52},
+          "rule":     {"enabled": true, "w": 160, "h": 5, "colour": "accent", "align": "center", "gap_before": 50, "min_contrast": 3.0},
+          "footer": true,
+          "counter": true
+        }
+      }
+    }
+  },
+
+  "_help_rule": "A role's \"rule\" draws one hairline. By default it goes at the bottom of the block. Give it \"after\": \"text\" and it is drawn directly under that element instead, which is where it belongs on a quotation slide: between the sentence and its source line. Left at the bottom it reads as an underline on the source line rather than a separator. A rule is drawn on the INK layer, so it counts towards the margin measurement like any other mark, and it carries its own \"min_contrast\", for which 3.0 is the WCAG allowance for a graphical object.",
+
+  "_help_panels": "Not used above, and useful to know about. A role may carry \"panels\": [{\"x\":0,\"y\":0,\"w\":1080,\"h\":300,\"colour\":\"accent\"}]. Panels are drawn on the BACKGROUND layer, deliberately, because a full bleed block of colour is not ink and must not be counted as ink by the margin measurement. Rules and every piece of type go on the ink layer and are measured."
+}
