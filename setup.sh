@@ -4,7 +4,11 @@
 #
 #   bash setup.sh               check the computer, build the kit's own Python environment,
 #                               run the self-test
-#   bash setup.sh --with-model  also offer to download the transcription model (about 148 MB)
+#   bash setup.sh --with-model  also download the transcription model (about 148 MB). It asks
+#                               first when you are at a terminal. Asking a question nobody can
+#                               see is how this used to skip the download in silence, so when
+#                               input is not a terminal, naming the flag is the consent.
+#   bash setup.sh --yes         answer yes to that question without being asked
 #   bash setup.sh --recreate    set the existing .venv folder aside and build a fresh one
 #   bash setup.sh --help        show this text
 #
@@ -30,18 +34,27 @@ set -u
 KIT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV="$KIT/.venv"
 MODEL="$KIT/models/ggml-base.en.bin"
-MODEL_URL="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"
+# This kit's own release asset first, so a first run needs no account anywhere, then the
+# original. Both serve the identical file: 147964211 bytes, md5 4279db3d7b18d9f6e4d5817a16af4f09,
+# checked from both on 2026-10-08. The model is OpenAI's Whisper converted to ggml for
+# whisper.cpp, MIT licensed, mirrored with attribution in the release notes.
+MODEL_URL="https://github.com/iambellsina-lab/content-line/releases/download/models-v1/ggml-base.en.bin"
+MODEL_URL_ALT="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin"
+MODEL_BYTES=147964211
+MODEL_MD5=4279db3d7b18d9f6e4d5817a16af4f09
 MIN_MINOR=10
 
 RECREATE=0
 WITH_MODEL=0
+ASSUME_YES=0
 for arg in "$@"; do
   case "$arg" in
     --recreate)   RECREATE=1 ;;
     --with-model) WITH_MODEL=1 ;;
+    -y|--yes)     ASSUME_YES=1 ;;
     -h|--help)    sed -n '3,26p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) echo "setup.sh does not know the option: $arg" >&2
-       echo "It takes --with-model, --recreate and --help. Run it as: bash setup.sh" >&2
+       echo "It takes --with-model, --yes, --recreate and --help. Run it as: bash setup.sh" >&2
        exit 2 ;;
   esac
 done
@@ -239,29 +252,55 @@ elif [ "$WITH_MODEL" -eq 1 ] && [ "$PILLOW_OK" -eq 1 ]; then
   say "       The transcription model is about 148 MB."
   say "         from: $MODEL_URL"
   say "         to:   $MODEL"
-  printf '       Download it now? [y/N] '
+  # Asking a question that nobody can see, then treating the silence as no, is how this
+  # skipped the download without saying so and then told the reader to run the very flag
+  # they had just run. Measured 2026-10-08 on a clean clone. When input is not a terminal,
+  # which is every scripted run and every run driven by Claude Code, naming --with-model
+  # is the consent, because nothing else could have asked for it.
   answer=""
-  read -r answer || true
-  [ -t 0 ] || say ""
+  if [ "$ASSUME_YES" -eq 1 ]; then
+    answer=y; say "       --yes was passed, so downloading."
+  elif [ -t 0 ]; then
+    printf '       Download it now? [y/N] '
+    read -r answer || true
+  else
+    answer=y; say "       input is not a terminal, and --with-model asked for this, so downloading."
+  fi
   case "$answer" in
     y|Y|yes|YES)
       mkdir -p "$KIT/models"
       PART="$MODEL.part"
-      if command -v curl >/dev/null 2>&1; then
-        dl_ok=0; curl -fL --progress-bar "$MODEL_URL" -o "$PART" && dl_ok=1
-      elif command -v wget >/dev/null 2>&1; then
-        dl_ok=0; wget -q --show-progress "$MODEL_URL" -O "$PART" && dl_ok=1
-      else
-        dl_ok=0; say "       neither curl nor wget is installed"
-      fi
+      dl_ok=0
+      for url in "$MODEL_URL" "$MODEL_URL_ALT"; do
+        [ "$dl_ok" -eq 1 ] && break
+        [ "$url" = "$MODEL_URL_ALT" ] && say "       the first source did not work, trying: $url"
+        if command -v curl >/dev/null 2>&1; then
+          curl -fL --progress-bar "$url" -o "$PART" && dl_ok=1
+        elif command -v wget >/dev/null 2>&1; then
+          wget -q --show-progress "$url" -O "$PART" && dl_ok=1
+        else
+          say "       neither curl nor wget is installed"; break
+        fi
+      done
+      # Size, header and checksum. A proxy or a captive portal returns 200 and an HTML
+      # page, which passes a size check on its own and then fails hours later inside
+      # whisper-cli with nothing to point at.
       if [ "$dl_ok" -eq 1 ] && "$VPY" -c "
-import os, sys
-p = sys.argv[1]
-if os.path.getsize(p) < 50 * 1000 * 1000: sys.exit(1)
-if open(p, 'rb').read(4) != b'lmgg': sys.exit(2)
-" "$PART"; then
+import hashlib, os, sys
+p, want_bytes, want_md5 = sys.argv[1], int(sys.argv[2]), sys.argv[3]
+n = os.path.getsize(p)
+if n != want_bytes:
+    print(f'       the file is {n} bytes and should be {want_bytes}'); sys.exit(1)
+with open(p, 'rb') as f:
+    if f.read(4) != b'lmgg':
+        print('       that is not a ggml model file'); sys.exit(2)
+    f.seek(0); h = hashlib.md5()
+    for chunk in iter(lambda: f.read(1 << 20), b''): h.update(chunk)
+if h.hexdigest() != want_md5:
+    print(f'       checksum {h.hexdigest()}, expected {want_md5}'); sys.exit(3)
+" "$PART" "$MODEL_BYTES" "$MODEL_MD5"; then
         mv "$PART" "$MODEL"
-        ok "whisper model: downloaded, and the file header checks out"
+        ok "whisper model: downloaded, $MODEL_BYTES bytes, md5 matches"
       else
         [ -f "$PART" ] && mv "$PART" "$PART.bad"
         warn "the model download did not work. Download it by hand from: $MODEL_URL"
@@ -270,8 +309,8 @@ if open(p, 'rb').read(4) != b'lmgg': sys.exit(2)
 "
       fi ;;
     *)
-      warn "whisper model: skipped. Transcription will not run without it."
-      OPTIONAL="${OPTIONAL}  - whisper model file: run  bash setup.sh --with-model  to be offered the 148 MB download
+      warn "whisper model: you said no. Transcription will not run without it."
+      OPTIONAL="${OPTIONAL}  - whisper model file: run  bash setup.sh --with-model --yes  for the 148 MB download
 " ;;
   esac
 else

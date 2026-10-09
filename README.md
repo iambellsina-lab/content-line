@@ -14,11 +14,19 @@ commands yourself.
 ```bash
 git clone https://github.com/iambellsina-lab/content-line.git
 cd content-line
-./setup.sh
+bash setup.sh --with-model
 ```
 
-`setup.sh` checks the four free things this needs and names whatever is missing. Nothing in it
-reaches the network except the one model download, which asks first and prints its size.
+That is the whole install. `setup.sh` checks what this needs, builds its own Python environment,
+downloads the 148 MB speech model from this repo's own release, checks its size and checksum, then
+renders real test videos and tells you whether this computer can make clips.
+
+**It will not install ffmpeg or Python for you**, because those are programs rather than data and
+shipping built copies of them carries obligations this kit is not taking on. If either is missing
+it prints the exact `brew install` line and stops. On a stock Mac, Python is 3.9 and too old, so
+expect to run `brew install ffmpeg python` once and then run setup again.
+
+Leave `--with-model` off and nothing is downloaded. Add `--yes` to skip the one question it asks.
 
 Then, in order, and the order matters:
 
