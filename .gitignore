@@ -12,7 +12,13 @@ models/
 *.mov
 *.MOV
 *.wav
+# Transcripts of real footage live in work/ and are ignored by the rule above. These
+# two trees hold hand written test fixtures that kit_check.py needs, and a blanket
+# *.srt rule quietly kept all nine of them out of the first public push, which is why
+# five of the self tests reported SKIP on a fresh clone.
 *.srt
+!fixtures/**/*.srt
+!specs/*.srt
 
 # Internal research carrying account ids, not part of the product
 HOSTING-AND-PACKAGING.md
