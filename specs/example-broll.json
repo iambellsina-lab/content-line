@@ -1,0 +1,85 @@
+{
+  "_help": "THE SECOND PICTURE SOURCE, for bin/broll.py. It runs over a FINISHED clip: the mp4 that came out of bin/assemble_clip.py, or any mp4. In goes one clip and this list of assets, out comes the same clip with cutaways, insets and cards composited in, the same length, the speaker's audio untouched. Copy this file to a new name, change the paths and the numbers, keep it with your own work. Lines starting with an underscore are notes and are ignored. Run it from the kit folder: python3 bin/broll.py out/rl/your-clip.mp4 --spec specs/example-broll.json --dry-run",
+
+  "_help_first_run": "THE PATHS BELOW DO NOT EXIST, on purpose. Run this file as it stands and it prints one problem per missing asset and encodes nothing, which is what it does with a typo in a real spec. To watch the whole pass work without owning any b-roll, make two throwaway assets with ffmpeg and point the first two layers at them: ffmpeg -f lavfi -i testsrc2=size=1280x720:rate=30:duration=4 -pix_fmt yuv420p broll/test-screen.mp4   and   ffmpeg -f lavfi -i color=c=0x10243A:size=1080x240:duration=1 -frames:v 1 broll/test-card.png",
+
+  "_help_base_and_out": "base is the finished clip to work on, and the first argument on the command line overrides it. out defaults to the clip's own name with -broll before .mp4, so nothing is ever written over the clip going in. A relative path is looked for next to this spec first.",
+  "base": null,
+  "out": null,
+
+  "_help_defaults": "Set a value once here and every layer inherits it. Any layer can override any of them. The per-type blocks hold the geometry that only makes sense for that type.",
+  "defaults": {
+    "_help_audio": "What the ASSET's own audio does. \"silent\" never maps it, so the speaker carries on talking underneath and their track is stream copied, bit identical, with no second loudness pass. \"mix\" ducks the asset under the speaker at mix_gain_db for its window only, which is what a screen recording with a beep in it needs. There is no \"replace\": cutting the speaker's audio is a hard cut, and a hard cut belongs in the cut list's segments where check_dupes.py can see it.",
+    "audio": "silent",
+    "mix_gain_db": -18.0,
+
+    "_help_short": "A cutaway SHORTER than its window. \"hold\" freezes the last frame for the remainder. \"loop\" repeats the asset, which suits a texture and not a document. \"shrink\" cuts the window down to the asset and reports the new end. Doing nothing is not an option here: plain ffmpeg lets the base clip reappear for the last fraction of a second, which reads as a dropped frame.",
+    "short": "hold",
+
+    "_help_long": "A cutaway LONGER than its window. \"trim\" plays from asset_start and stops at the window end. \"fit\" changes the speed so the whole asset fills the window exactly, in either direction, and warns past 2x or under 0.5x. \"fit\" will not combine with audio \"mix\", because changing the speed re-pitches the voice.",
+    "long": "trim",
+    "asset_start": 0.0,
+
+    "_help_look": "opacity 1.0 is solid. fade_ms runs on the asset's own alpha: 0 is a hard cut, which is what the rest of the kit does, and 150 to 250 is a dissolve. focus_x and focus_y choose what a cover crop keeps, 0.5 is centre. pad_color is what fills the gap when fit is \"contain\", and black@0.0 is transparent, so the speaker shows through instead of a bar.",
+    "opacity": 1.0,
+    "fade_ms": 0,
+    "focus_x": 0.5,
+    "focus_y": 0.5,
+    "pad_color": "black@0.0",
+
+    "_help_fit": "What happens when the asset is the wrong shape for its box. \"cover\" fills the box and crops the overflow, and warns when that throws away more than a quarter of the asset, which is what a 16:9 screen recording loses on the way into a 9:16 frame. \"contain\" fits all of it inside the box and pads the rest with pad_color. \"stretch\" distorts to fill, and says so every time.",
+    "full": {"fit": "cover"},
+    "pip": {"fit": "cover", "width_pct": 0.38, "height_pct": null, "position": "top-right", "margin_pct": 0.04},
+    "lower_third": {"fit": "contain", "width_pct": 1.0, "height_pct": 0.18, "bottom_pct": 0.12, "margin_pct": 0.0}
+  },
+
+  "_help_export": "The second pass is a second H.264 generation over the picture, because the captions are already burned into the clip going in. These are the kit's delivery numbers. Set crf instead of a bitrate for a visually cheaper generation on a clip that is going to be re-encoded again anyway.",
+  "export": {"video_bitrate": "12M", "audio_bitrate": "192k", "crf": null, "maxrate": "15M", "bufsize": "20M", "preset": "medium"},
+
+  "_help_layers": "One entry per cutaway, inset or card. start and end are seconds into the FINISHED clip, which is the clock you read off the player. LIST ORDER IS PAINT ORDER: a pip listed after a full cutaway draws on top of it.",
+  "layers": [
+    {
+      "_why": "A FULL FRAME CUTAWAY. The picture becomes the asset and the speaker keeps talking. This is the layer that changes what the output looks like. It also covers any burned in caption inside its window, so pass --cuts with the cut list that made the clip and the covered cards get named before anything is encoded.",
+      "type": "full",
+      "asset": "broll/notes-closeup.mp4",
+      "start": 4.0,
+      "end": 7.5,
+      "fit": "cover",
+      "focus_y": 0.45,
+      "audio": "silent",
+      "short": "hold",
+      "note": "close-up of the handwritten page, over the line about writing it down"
+    },
+    {
+      "_why": "PICTURE IN PICTURE. A screen recording inset at a corner. A 16:9 recording in a 9:16 frame loses most of itself to a cover crop, which is why this one says contain: it keeps the whole screen legible and pads the rest transparently. A large pip is also the way to show a cutaway WITHOUT covering the captions, because it sits above the caption band.",
+      "type": "pip",
+      "asset": "broll/test-screen.mp4",
+      "start": 9.0,
+      "end": 14.0,
+      "fit": "contain",
+      "width_pct": 0.62,
+      "position": "top-center",
+      "margin_pct": 0.05,
+      "fade_ms": 160,
+      "audio": "silent",
+      "long": "trim",
+      "note": "the dashboard, while she says what the number was"
+    },
+    {
+      "_why": "A LOWER THIRD. A PNG with transparency over the bottom of the frame: a name card, a quote, a logo lockup. contain so the card is never cropped, and the transparent pad means only the artwork shows. bottom_pct 0.30 lifts it clear of a caption band sitting 500 pixels up.",
+      "type": "lower_third",
+      "asset": "broll/test-card.png",
+      "start": 1.0,
+      "end": 5.0,
+      "height_pct": 0.12,
+      "bottom_pct": 0.30,
+      "width_pct": 0.86,
+      "fade_ms": 200,
+      "note": "her name and what she does, for the first few seconds only"
+    }
+  ],
+
+  "_help_batch": "One clip in, one clip out, on purpose: it keeps re-running this safe and keeps the spec readable. A batch is a shell loop. for f in out/rl/*.mp4; do python3 bin/broll.py \"$f\" --spec broll/$(basename \"$f\" .mp4).json; done",
+
+  "_help_proof": "After rendering, --frames 2.0,5.0,9.0 writes a PNG at each of those seconds and prints the frame's average colour next to which layer window it falls in. That is how you show the picture actually changed, rather than saying it did."
+}

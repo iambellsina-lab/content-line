@@ -1,0 +1,86 @@
+{
+  "_comment": "The niche profile. One per brand. This is what makes the system niche aware: it holds WHO to study, WHAT is winning, and the executable shape of it. Everything here is filled by research against real accounts. Nothing in it may be invented.",
+
+  "brand": "example-chiropractic",
+  "niche": "chiropractic care for desk workers",
+  "_niche_note": "One narrow phrase. 'Chiropractic' is a category, not a niche. 'Chiropractic care for desk workers' is a niche.",
+
+  "accounts": [
+    {"handle": "", "followers": 0, "why": "named by the user", "added": ""},
+    {"handle": "", "followers": 0, "why": "platform recommendation from an account above", "added": ""}
+  ],
+  "_accounts_note": "Five to fifteen. Named by the USER or surfaced by the platform's own recommendations. NEVER invented. Include small accounts with outsized posts on purpose: the ratio is the lesson.",
+
+  "last_researched": null,
+  "research_file": "research/<niche>-<date>.md",
+
+  "winning_formats": [
+    {
+      "id": "format-1",
+      "name": "",
+      "_name_note": "Name it. A named format is repeatable and arguable. An unnamed one is a vibe.",
+      "evidence": {
+        "posts": [
+          {"url": "", "account": "", "views": 0, "followers": 0, "ratio": 0, "likes": 0, "comments": 0, "shares_or_sends": 0}
+        ],
+        "_evidence_note": "THREE posts sharing a shape is a finding. One is a coincidence. Ratio is views divided by that account's followers, because a post that escaped its own audience is the only one the post itself explains.",
+        "read_on": ""
+      },
+
+      "shape": {
+        "duration_seconds": [0, 0],
+        "hook_type": "",
+        "_hook_type_options": "flat-claim | question | number | confession | contradiction | demonstration",
+        "hook_location": "",
+        "_hook_location_options": "words | first-frame | picture",
+        "hook_seconds": [0, 3],
+        "turn_at_percent": 0,
+        "_turn_note": "Where the point lands, as a fraction of total length. The model's posts often turn around 60 percent.",
+        "tells_or_asks": "",
+        "ends_with": "",
+        "_ends_with_options": "cta | open-question | flat-stop | loop-to-start"
+      },
+
+      "execute": {
+        "_comment": "The part the editor actually runs. These map onto the kit's own tools, so a format is a build instruction rather than a description.",
+        "aspect": "1080x1920",
+        "fps": 30,
+        "cuts_per_10s": 0,
+        "caption_style": {
+          "words_per_card": [2, 4],
+          "position": "centre-safe",
+          "treatment": "outline",
+          "cut_in": "hard"
+        },
+        "grade": "",
+        "_grade_options": "neutral-film | warm-desert | cool-night | bleached | mono",
+        "audio": "",
+        "_audio_options": "trending-track | voice-only | voice-over-bed | silent",
+        "loudness_lufs": -14,
+        "text_on_first_frame": true,
+        "b_roll_required": false
+      },
+
+      "caption_pattern": {
+        "first_line_shape": "",
+        "length_words": [0, 0],
+        "cta": "",
+        "hashtags": 0
+      }
+    }
+  ],
+
+  "never": [],
+  "_never_note": "The user's hard limits, copied from BRAND-INTAKE.md. No face, no synthetic voice, no claims about outcomes, whatever they said. The editor checks this before it renders anything.",
+
+  "claims_to_avoid": [],
+  "_claims_note": "Regulated niches have language that cannot be used. Health, finance and law especially. A chiropractor cannot claim to cure. Fill this from the user, or from their regulator, never from a competitor's caption.",
+
+  "test": {
+    "_comment": "Research says what to try. Their own numbers say what to keep. One variable at a time.",
+    "holding_constant": "",
+    "varying": "",
+    "posts_run": 0,
+    "posts_needed": 12
+  }
+}

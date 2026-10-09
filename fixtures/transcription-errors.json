@@ -1,0 +1,16 @@
+{
+  "_what": "Phrases a speech-to-text model got wrong, which must never reach a caption card.",
+  "_why": "Six of these were found by hand in one 26-minute recording, after the cards were already written. A card carrying a mishearing is burned in: it cannot be fixed after rendering. caption_check.py reads this file by default.",
+  "_how": "Each entry is a phrase the transcriber produced, the phrase that was actually said, and where it was found. Matching is case-insensitive on word boundaries, so 'couch' does not fire inside 'couching'. Phrases, not bare words: 'piece' is a real word, 'world piece' is not.",
+  "_yours": "THIS IS A STARTING LIST, NOT YOUR LIST. Every one of these came from one speaker's recording. Add your own the first time you read a transcript: your name, your product names, the jargon of your field, the two or three words you say in a way the model mishears. The single highest value row is your own name, because a card that misspells the speaker is the one a viewer notices.",
+  "_name_row": "Replace the NAME row below with your own. The entry is here as the shape to copy, and because a misheard name is the commonest and most visible defect of the lot.",
+  "errors": [
+    {"heard": "world piece",            "said": "world peace",          "found": "generic. A homophone that passes a spellcheck"},
+    {"heard": "Belia",                  "said": "Bella",                "found": "NAME ROW, replace with yours. The speaker's own name, misheard in the recording this list came from"},
+    {"heard": "as a catch",             "said": "as a coach",           "found": "a trade word the model does not expect"},
+    {"heard": "couch sale",             "said": "coach sale",           "found": "the same word again, in a different phrase"},
+    {"heard": "couch",                  "said": "coach",                "found": "and bare. Three rows for one word is normal: the model gets it wrong differently each time"},
+    {"heard": "a judgment of free zone","said": "a judgment-free zone",  "found": "a hyphenated compound broken into words"},
+    {"heard": "posed to go",            "said": "supposed to go",       "found": "a swallowed first syllable, which happens most at speed"}
+  ]
+}

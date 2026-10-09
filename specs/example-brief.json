@@ -1,0 +1,20 @@
+{
+  "_help": "THE THREE QUESTIONS, answered before any clip is cut. Copy this to specs/mybrief.json, answer it, and pass it to the planner: python3 bin/plan_clips.py transcript.srt --brief specs/mybrief.json. Lines starting with an underscore are notes and are ignored.",
+  "_why": "On the first real batch through this method, every expensive correction traced back to one of these three going unasked. The first cut list was built in spoken order and thrown away whole. A length band nobody had agreed to cut the most concrete image in the recording. Six things that must never appear were found by a sweep AFTER the cuts existed, which forced two pieces to be re-cut. Asking costs nothing. Answering late costs a rebuild.",
+
+  "_help_order": "QUESTION ONE. \"edit\" assembles each clip for the argument, taking moments from wherever they were said. \"spoken\" keeps tape order. Most people circle: the sharpest version of a point arrives long after the story that proves it, and the line that should open the clip gets said near the end. If the speaker circles, the answer is edit. If they make a point once and finish it, the answer is spoken, and bin/pick_pulls.py is the tool, not this one.",
+  "order": "edit",
+
+  "_help_length": "QUESTION TWO. Seconds. Ask the person whose face is in the video, not the niche research. A band borrowed from someone else's account will cut the best thing in the recording and call it a removal for length. Leave either one out to keep the planner's own default, 45 to 150.",
+  "length": {"min": 45, "max": 150},
+
+  "_help_forbidden": "QUESTION THREE. What must never appear. Two shapes, mix them freely. A RANGE is {\"start\", \"end\", \"why\"} in seconds of the recording, and any moment that touches it is dropped before assembly. A PHRASE is {\"phrase\", \"why\"}, matched case-insensitively anywhere in a moment's text. Ask for: anything about a named person who has not agreed to be in it, anything about a body, anything the speaker would not want quoted, anything under an NDA, and anything they said on camera that they themselves flagged.",
+  "_example_forbidden": [
+    {"start": 612.0, "end": 661.5, "why": "the stretch about her mother, who did not agree to be in it"},
+    {"phrase": "my accountant said", "why": "a claim about money that cannot be stood behind"}
+  ],
+  "forbidden": [],
+
+  "_help_notes": "Anything else the planner cannot know. It is not read by any tool: it is here so the answer sits with the work instead of in a chat window somebody closes.",
+  "notes": ""
+}

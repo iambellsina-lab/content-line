@@ -1,0 +1,50 @@
+{
+  "_help": "The LOOK for bin/assemble_clip.py: one long recording in, finished short clips out. Copy this file to a new name (for example specs/mystyle.json), change the values, and keep it with your own work. Lines starting with an underscore are notes and are ignored. Every value here is optional: delete a line and the plain default below is used. THIS FILE IS DELIBERATELY NEUTRAL. White type, no grade, no skin pass, no brand. It is a starting point, not a house style, and it carries nobody's identity.",
+
+  "name": "Neutral",
+
+  "_help_font": "Your font as a .ttf or .otf file, next to this file or in a fonts folder, for example \"fonts/Montserrat-Bold.ttf\". An installed font name also works, for example \"Arial Bold\". null means: the best bold font this computer has, which is a fallback and not a look. font_index picks the face inside a .ttc collection, which holds several weights in one file: 0 is the first. A .ttf has only 0.",
+  "font": null,
+  "font_index": 0,
+
+  "_help_colours": "text_color is the caption colour. accent is for at most one word in a whole clip, and the honest default is the same colour, meaning no accent. Both are a # and six characters.",
+  "text_color": "#FFFFFF",
+  "accent": "#FFFFFF",
+
+  "_help_shadow": "A soft dark shadow is what keeps type readable over a bright wall or a pale shirt, which is the commonest unforced error in short form. A thick stroke is the other way of solving it and reads as a template. dx and dy are the offset in pixels, alpha is 0 to 255, blur is the softness.",
+  "shadow": {"enabled": true, "dx": 5, "dy": 6, "alpha": 190, "blur": 14},
+
+  "_help_type": "One size for the whole clip: sizing each card to its own longest word makes the type breathe in and out, which is the clearest tell of a template. Leave font_size null and the largest size at which every card still fits max_lines is used, capped at font_size_max. Pin font_size when a batch of clips must all match. side_margin is kept clear each side: 200 is not a guess, it is where the like and share column sits on Instagram and TikTok, and a block wrapped to the full frame puts its last word under the like button.",
+  "font_size": null,
+  "font_size_max": 96,
+  "max_lines": 2,
+  "line_height": 1.14,
+  "side_margin": 200,
+
+  "_help_caption_height": "WHERE THE CAPTIONS SIT, which is the first thing to change for your own look. \"lower\" puts the BOTTOM edge of the text block 500 pixels up from the bottom of the frame, so a one line card and a two line card share that edge and the captions do not jump when a card changes length. \"center\" and \"upper\" are the other two. caption_nudge moves the block in pixels, negative is up, and it is clamped so type never leaves the safe area. A face usually fills the upper middle of a vertical frame, which is why lower is the default.",
+  "caption_position": "lower",
+  "caption_nudge": 0,
+
+  "_help_hook": "One line pinned at the top for the first few seconds, while the rolling captions run underneath. Two text layers is the ceiling: a pinned hook and the rolling caption, never three. hold is how many seconds it stays. size_pct makes it smaller than the captions, because a pinned line that is larger than the words being spoken fights them. Set text here to put the same hook on every piece, or give each piece its own.",
+  "hook": {"text": "", "hold": 4.0, "position": "upper", "nudge": 0, "size_pct": 0.8},
+
+  "_help_fade": "0 is a hard cut both ways, which is what the rest of the kit does. 100 to 150 is a soft appearance. The fade only ever runs on a card's FIRST appearance and its LAST exit: measured, fading both ends of two touching cards drops the caption band to black for two frames at every card change, which on a rolling caption is a blink about once a second.",
+  "fade_ms": 0,
+
+  "_help_reframe": "zoom 1.0 is the full frame, about 1.18 is a medium, about 1.38 is a close. Reframing in post is how several clips from one recording stop looking like the same video. focus_x and focus_y choose what the crop keeps: 0.5 is centre, and about 0.42 vertically holds a seated or standing subject's face above the middle instead of cropping through it.",
+  "zoom": 1.0,
+  "focus_x": 0.5,
+  "focus_y": 0.5,
+
+  "_help_color_fix": "\"auto\" corrects the colour TAGS when the source claims HDR, which phones recording HLG or Dolby Vision do, and leaves ordinary footage alone. Without it the picture is right and the file still says HLG, so a player reinterprets it and the clip looks wrong on a phone and right on a laptop. \"always\" retags whatever comes in, \"off\" touches nothing. The comment in bin/assemble_clip.py records the three approaches that were measured and failed.",
+  "color_fix": "auto",
+
+  "_help_grade": "Off by default, because a grade is a look and this file does not have one. saturation and contrast are multipliers around 1.0, brightness is added and runs about -0.1 to 0.1. curves is an ffmpeg curve, for example \"0/0 0.25/0.22 0.75/0.80 1/1\", which lifts the shadows and rolls the highlights. Grade on a reference frame first, not on a whole batch.",
+  "grade": {"enabled": false, "saturation": 1.0, "contrast": 1.0, "brightness": 0.0, "curves": ""},
+
+  "_help_skin": "Off by default. It confines smoothing to skin tones with a chroma mask, so hair, eyes and background keep their detail. Measured on a real face: sigma_s 6 with sigma_r 0.06 is barely visible, 14 and 0.12 is the sweet spot, 24 and 0.18 is plastic. WHAT IT DOES NOT DO: it lowers the contrast of a blemish so it reads less, it does not heal or paint anything out, and it cannot tidy a flyaway hair, because that is a high contrast edge and an edge preserving filter is built to protect those. Lighting moves a face further than any filter. HOW THE MASK REALLY BEHAVES, rendered and looked at on 2026-10-08 instead of taken on trust: u and v were written as a chroma test for skin tones and the mask that comes out is not one. It is a soft greyscale copy of the picture at about half strength everywhere, so it softens the treatment rather than aiming it. The numbers are kept because this exact version is the one measured on a real face. The sharpness of hair and background comes from the bilateral filter, not from the mask.",
+  "skin": {"enabled": false, "sigma_s": 14, "sigma_r": 0.12, "mask_blur": 9, "u": [100, 132], "v": [134, 176]},
+
+  "_help_export": "1080x1920, 30fps and 12 Mbps are fixed across the kit. lufs and true_peak are the loudness target, used unless the piece is rendered with --keep-audio. intermediate_crf is the quality of the stage one file that stage two draws captions on: 14 is one visually free generation.",
+  "export": {"video_bitrate": "12M", "lufs": -14.0, "true_peak": -1.0, "intermediate_crf": 14, "keep_audio_bitrate": "320k"}
+}
