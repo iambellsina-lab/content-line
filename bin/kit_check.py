@@ -104,7 +104,12 @@ REQUIRED_ENCODERS = ["libx264", "aac"]
 TEXT_FILTERS = ["drawtext", "subtitles", "ass"]
 SCRIPTS = ["kit_common.py", "make_clip.py", "caption_video.py", "pick_pulls.py",
            "cards_from_srt.py", "publish_media.py", "transcribe.py", "assemble_clip.py",
-           "check_dupes.py", "plan_clips.py", "name_clip.py"]
+           "check_dupes.py", "plan_clips.py", "name_clip.py",
+           # Added 2026-10-08 after the first run of the whole chain WITH b-roll. These four
+           # are chain steps a buyer runs and none of them was parse checked here. This is a
+           # parse check only: no smoke run is claimed for them, and the comment says so on
+           # purpose so nobody reads a PASS on this line as "it rendered".
+           "caption_check.py", "caption_repair.py", "hear_joins.py", "broll.py"]
 
 # A filename a buyer can live with: lowercase, digits and single hyphens, no edges.
 GOOD_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
