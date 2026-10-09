@@ -55,8 +55,8 @@ except ImportError:
 ELEMENTS = ("label", "text", "attrib", "question", "cta")
 
 # Letterspacing is applied BETWEEN LETTERS, never around punctuation. Tracked small caps with
-# this rule missing put a full stop adrift in its own pocket of air, so "DR. FRED DIDOMENICO"
-# read as "DR . FRED" and "THE H.E.A.L.E.D. SYSTEM" came out as a row of floating dots. Found by
+# this rule missing put a full stop adrift in its own pocket of air, so "DR. A. NAME" read as
+# "DR . A . NAME" and an initialism like "T.H.I.S." came out as a row of floating dots. Found by
 # opening the PNG and reading it; every exit code in that run was zero.
 TIGHT_AFTER = ".,:;!?-/'" + "\u2019\u201c\u201d\u2013\u2014"  # quotes and the two long dashes, by code point
 
@@ -318,7 +318,7 @@ def draw_line(d, text, font, x, y_top, fill, align="center", tracking=0.0, box=N
             cx = x
         # Each character is placed on the BASELINE, not by its own top. Drawing a tracked string
         # character by character with a top anchor aligns every glyph's top to the same line, so
-        # a full stop floats up to cap height: "H.E.A.L.E.D." came out as a row of raised dots.
+        # a full stop floats up to cap height: an initialism like "T.H.I.S." came out as raised dots.
         # Magnified the pixels to find it. Every exit code in that run was zero.
         base_y = y_top + font.getmetrics()[0]
         for c, t in zip(text, list(_tracks(text, tracking)) + [0.0]):
