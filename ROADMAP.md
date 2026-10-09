@@ -1,151 +1,139 @@
 # What this kit needs, in order
 
-**Written 2026-10-08.** Two questions answered here: what makes the kit pristine, and what it takes to
-edit like the video Bella sent. Nothing below is a guess about effort; each item names its pieces.
+**Rewritten 2026-10-08, late.** The first version of this file was written in the morning, before
+five large scripts landed. It then told readers the kit could not do things it already does, which
+on a public repo is the most expensive kind of stale. Every line below was checked against the code
+on the date in its row.
 
-**What the kit does today, proven end to end on 2026-10-08:** a recording goes in, finished captioned
-vertical clips come out, free and local. 7 minutes transcribed in 7 seconds. Four clips planned, checked
-for duplication, captioned, caption-checked and rendered.
-
-**What it cannot do today:** anything with a second picture source. No b-roll, no graphics over the
-speaker, no cutaways, no screen recordings, no animation. It is a single-camera clip engine.
-
----
-
-## Part 1. The nine things between here and pristine
-
-Ordered by what breaks first in a buyer's hands. Every one of these was named by the agent that built the
-thing, not found later by a reviewer.
-
-### 1. Nothing has heard the audio. This is the biggest one.
-
-Every clip boundary and every join is a guess about meaning made from a text transcript. A join that reads
-cleanly on the page can still sound like a cut. Nobody has listened to a single join in anything this kit
-has produced.
-
-**The fix is not more cleverness, it is a listen step.** The planner should export its joins as a short
-audio file, two seconds either side of each cut, so a human hears only the joins rather than the whole
-clip. Ten joins is twenty seconds of listening.
-
-*Pieces: a join-export script, and a line in the workflow that says do not render until you have heard
-them.*
-
-### 2. It has only been run on 7 minutes, never on an hour
-
-7 minutes produced 128 candidate moments. An hour would produce roughly 1,100, and the pairwise subject
-matching is O(n squared), so that is not 8 times the work, it is nearer 70. Untested at that size.
-
-*Pieces: run it on a real hour, measure, then fix whatever falls over.*
-
-### 3. The planner does not know speakers exist
-
-It scores moments as if one person is talking. It can produce a clip that spans a question and its answer
-without noticing it has done so. For a two-person podcast that is not an edge case, it is the normal case.
-
-Diarisation was proved on a two-track file built from one voice on both channels, which is the test that
-cannot fail. It has never run on two actual people.
-
-*Pieces: speaker awareness in the planner, then a real two-person recording to test on.*
-
-### 4. The caption checker found 39 blockers and nobody fixed them
-
-That is the checker working. But the kit currently has no repair step, so a buyer gets 39 problems and no
-path. The repair logic exists; it was done by hand on this batch over three rounds.
-
-*Pieces: turn the three repair moves (add the governing clause, rewrite inside the ceiling, cut the card)
-into a script that proposes fixes rather than only finding faults.*
-
-### 5. The auto-generated filenames are unusable
-
-A real run produced `make-400-000-year-somebody-tell-make.mp4`.
-
-*Pieces: one function. Small, and it is the first thing a buyer sees.*
-
-### 6. The scores are not calibrated
-
-`plan_clips` inherits `pick_pulls`' scoring, whose own docstring says the thresholds are hand-set on one
-fixture and are not a probability of performing well. The constants were tuned on one person's recording.
-
-**Say so in the product.** A score that looks like a prediction and is not is worse than no score.
-
-### 7. `kit_check` does not render with the new assembler
-
-It parses the file but never runs it, so a broken ffmpeg build passes preflight and fails at the first
-real render.
-
-### 8. The model download has never been exercised
-
-The refusal path works: it prints the size and the URL and exits without fetching. The actual 148 MB
-download has never run, because every test pointed at a model that already existed.
-
-### 9. `LONG-FORM-INTAKE.md` has no section for the renderer
-
-Two agents were writing the same folder and one stopped rather than collide. The gap is real.
+**What the kit does today, proven by a clean clone plus one command on 2026-10-08:**
+`30 passed, 0 failed, 0 warnings, 1 skipped` and `RESULT: PASS. This computer can make clips.`
+A recording goes in, finished captioned vertical clips come out, free and local.
 
 ---
 
-## Part 2. Editing like the video she sent
+## Closed since the morning version
 
-The reference uses: text overlays and motion graphics synced to narration, close-ups of handwritten notes,
-document mock-ups, screen recordings, live event footage, animated metaphors, and fast jump cuts between
-all of it.
+Five of the original nine. Each row says what proves it, not that somebody intended to do it.
 
-**Here is the honest shape of that gap.** The kit composites caption PNGs over video at a timecode. **A
-cutaway is the same mechanism with a different asset.** That is the good news and it is why this is
-reachable rather than a rewrite.
+| Was | Now | The proof |
+|---|---|---|
+| **1. Nothing has heard the audio** | **Narrowed, not closed.** `hear_joins.py` exports only the joins, two seconds either side, so a person hears the cuts rather than the clips. It skips boundaries where the tape runs straight through, because those are not cuts | On the real six piece batch: 53 segment boundaries, 20 of them continuous tape, 33 actual cuts. Content proved independently of hearing it, by cutting a source whose loudness rises with its own timestamp and recovering each exported second's origin from its measured volume: 13.50 / 40.30 / 43.69 / 25.43 against a cut list saying 13.5 / 40.5 / 43.5 / 25.5 |
+| **4. The checker finds 39 blockers and nobody fixes them** | `caption_repair.py` ships, 1,629 lines. It proposes the three repair moves rather than rewriting silently | Present, parse checked by `kit_check.py`. **The before and after blocker count has not been measured**, so treat the size of the improvement as unknown |
+| **5. The auto-generated filenames are unusable** | `name_clip.py` ships, 900 lines | `make-400-000-year-somebody-tell-make` became `make-400k-a-year`. Two clips saying the identical thing came out as `make-400k-a-year` and `400k-a-year`, with no date and no split number |
+| **7. `kit_check` does not render with the new assembler** | It renders with it, and checks the result | `[PASS] test render: assemble_clip.py  2 out of order segments and 1 card became 2.00s of 1080x1920 h264`, plus `[PASS] assemble_clip.py plays EDIT order, not tape order` and `[PASS] assemble_clip.py colour fix  source tagged arib-std-b67 / bt2020 came out bt709 / bt709` |
+| **8. The model download has never been exercised** | It runs, from this repo's own release, and is checked on size, header and checksum | Downloaded anonymously with no account: 147,964,211 bytes, md5 `4279db3d7b18d9f6e4d5817a16af4f09`, identical to the local copy. **It also used to download nothing at all when no human was at the keyboard**, which was every scripted run. Fixed the same day |
 
-### Reachable now, because the machinery already exists
+**And the claim this file led with is gone.** The morning version said: "anything with a second
+picture source. No b-roll, no graphics over the speaker, no cutaways, no screen recordings, no
+animation. It is a single-camera clip engine." `broll.py` ships, 1,068 lines: a full frame cutaway,
+a picture in picture with nine anchor positions, and a lower third. It even names the caption cards a
+full cutaway would cover, which is how the defect below was found rather than shipped blind.
 
-**B-roll and cutaways.** Insert or overlay a second video or image for a time range. The renderer already
-layers PNGs at timecodes; this is the same call with a video input. Full-frame cutaway, picture in
-picture, or a lower-third card.
-*Pieces: an asset list in the spec, a layer type in the renderer, a rule for what the audio does under a
-cutaway.*
+---
 
-**Document and screen-recording inserts.** The same feature. The difference is only the asset.
+## Still open, in the order they bite
 
-**Jump cuts between sources.** Already there. `assemble_clip` concatenates segments in edit order; it just
-has one source today.
+### 1. A full frame cutaway covers the captions underneath it
 
-**Automatic b-roll suggestions.** The transcript is already timestamped and scored. When she says "a gym
-membership", that is a cue for an asset at that second. The planner can emit the cue list even when it
-cannot supply the asset.
-*Pieces: a keyword-to-asset map, and a cue list in the plan output.*
+**This is the one to fix first, because it is the only item here that makes a wrong video rather
+than a missing feature.** Recorded in `STATUS.md` from a real 180 second run. Captions are burned
+into the picture by ffmpeg during assembly, then b-roll is laid on top, so the cutaway hides them.
+Both cannot be right in that order.
 
-### Harder, and it should be said plainly
+`broll.py` warns which cards a cutaway would cover, so nobody is surprised. That is mitigation, not
+a fix.
 
-**Motion graphics.** Captions are rendered as static PNGs with Pillow. Animating means rendering a frame
-sequence, which Pillow can do, but the design work is the real cost: a bad motion graphic is worse than
-none. Start with two moves, a word that snaps on and a line that wipes, and stop there.
+**The fix is a renderer that composites both layers in one pass with real stacking order.** That is
+being built as a separate kit on HeyGen's HyperFrames, where layering is CSS `z-index` and the
+caption layer simply sits above the b-roll layer. Not finished at the time of writing.
 
-**Animated metaphors**, the dumbbell and the shredder in that video, are illustration and animation work.
-**This is not an engineering gap, it is a design one**, and no script produces them. The kit can hold and
-place them. Somebody has to make them.
+### 2. Nothing has heard the audio where the DECISION is made
+
+The listen step closed the human half. The machine half is open: `plan_clips.py` still chooses every
+segment order from text alone. A join that reads cleanly on the page can still sound like a cut, and
+a cut can still land mid word because nothing checks where the silences are.
+
+**The fix, cheapest first:** measure silence on the source with ffmpeg and snap every cut point to
+the nearest one; flag a join where loudness jumps across it; only then consider scoring moments on
+energy rather than words.
+
+### 3. It has only been run on short tape, never on an hour
+
+7 minutes produced 128 candidate moments. An hour produces roughly 1,100, and the pairwise subject
+matching is O(n squared), so an hour is nearer 70 times the work rather than 8. **Untested at that
+size, and nobody has measured the curve.**
+
+*Pieces: build synthetic transcripts at 7, 15, 30, 60 and 90 minutes, time it, find the quadratic
+loop, then window or pre-filter the comparison. Any cap must log what it dropped, because a silent
+cap is forbidden in this kit.*
+
+### 4. The planner does not know that two people are two people
+
+Checked today: `plan_clips.py` mentions a speaker only in its prose and in a comment about somebody
+correcting themselves. **There is no speaker field and no speaker decision anywhere in it.** It can
+produce a clip that spans a question and its answer without noticing. For a two person podcast that
+is the normal case.
+
+Diarisation was only ever proved on a two track file built from one voice on both channels, which is
+the test that cannot fail.
+
+*Pieces: parse the labels the transcript already carries, keep a speaker per cue, refuse to cross a
+speaker boundary unless the exchange stays whole. Then test on two real voices.*
+
+### 5. The scores look like predictions and are not
+
+The thresholds sit at `bin/pick_pulls.py:64` to `:69` and were hand set on one fixture, tuned on one
+person's recording. **In its favour, the tool already says so in its own output**, at
+`bin/pick_pulls.py:719`: "The strong/usable thresholds are hand-set on one fixture, not calibrated."
+
+*The fix is honesty rather than code: present a rank rather than a score anywhere a reader could
+mistake the number for a probability of performing well.*
+
+### 6. Five shipped tools reach a buyer with no proof they run
+
+`kit_check.py` parse checks `caption_check.py`, `caption_repair.py`, `hear_joins.py` and `broll.py`,
+and says out loud that a parse check is not a smoke run. It does not mention `add_audio.py` at all.
+So about 5,000 lines of tooling arrive with nothing demonstrating it works on the recipient's
+machine.
+
+*Pieces: one smoke run each inside `kit_check.py`, on the fixtures that already ship.*
+
+### 7. `LONG-FORM-INTAKE.md` still has no renderer section
+
+Confirmed today: no renderer heading in the file. Two agents were writing the same folder and one
+stopped rather than collide. The gap is real and it is a doc edit.
+
+---
+
+## Reachable, and not started
+
+**Automatic b-roll suggestions.** The transcript is already timestamped and scored. A mention of "a
+gym membership" is a cue for an asset at that second. The planner could emit the cue list even
+without supplying the asset.
+
+**Motion graphics.** Captions are static PNGs drawn with Pillow. Animating them inside this kit
+means rendering frame sequences, which Pillow can do, and the design work is the real cost. **The
+HyperFrames kit makes this mostly moot**, because there an animated caption is HTML and GSAP, and
+the renderer seeks every frame in headless Chrome. Start with two moves, a word that snaps on and a
+line that wipes, and stop there.
+
+**Animated metaphors** are illustration work. No script produces them. This kit can hold and place
+them; somebody has to make them.
 
 **Shallow depth of field and the office look** are camera and room, not edit.
 
-### What that video actually is
-
-It is a multi-track edit with an asset library behind it. The kit is a clip engine. **Adding a second
-picture source is the whole difference**, and it is one feature, not a rebuild.
-
 ---
 
-## Part 3. The order to build in
+## The order to build in
 
-1. **The listen step** (Part 1, item 1). Until joins are heard, everything else is polish on an unverified
-   edit.
-2. **Filenames and the caption repair step** (items 5 and 4). Both small, both are the buyer's first
-   impression.
-3. **B-roll and cutaways** (Part 2). The single biggest jump in what the output looks like, and the
-   machinery is already there.
-4. **An hour of real tape, and two real speakers** (items 2 and 3). Find out what breaks before a buyer
-   does.
-5. **Preflight and the download path** (items 7 and 8). Unglamorous, and it is where a first run fails.
-6. **Motion, two moves only** (Part 2). Last, because it is the easiest thing to do badly.
+1. **The cutaway and caption collision.** The only open item that ships a wrong video.
+2. **Snap cuts to silence.** Cheap, mechanical, and it fixes cuts landing mid word.
+3. **A smoke run for the five untested tools.** Unglamorous, and it is where a first run fails.
+4. **Speakers**, if a podcast is actually on the list. Skip it if not.
+5. **An hour of real tape.** Find out what breaks before a buyer does.
+6. **The doc fixes**, items 5 and 7 above. An afternoon, and they stop the kit misdescribing itself.
 
-**The interface Bella described, a tab to upload and a library of edits she can open and change, sits on
-top of all of this and should be built last.** Every edit is already a JSON cut list rather than a baked
-video, which is what makes that interface possible at all: opening an edit means reading a file, and
-changing one means editing a line and re-rendering. That property is already there and it is the thing to
-protect.
+**The interface with a tab to upload and a library of edits sits on top of all of this and should be
+built last.** Every edit is already a JSON cut list rather than a baked video, which is what makes
+that interface possible: opening an edit means reading a file, changing one means editing a line and
+re-rendering. That property is already there and it is the thing to protect.
