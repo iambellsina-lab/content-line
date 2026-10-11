@@ -1,7 +1,7 @@
 # What a webinar funnel actually converts at
 
 Five research agents, 2026-10-02, instructed to say "nobody has reliable data" rather than invent a
-number. Raw output preserved at `research/webinar-funnel-raw-2026-10-02.txt`. This is the readable
+number. Raw output kept privately, not in the kit. This is the readable
 version. Companion to `WHAT-PRODUCES-MONEY.md`.
 
 **The headline: exactly one step of this funnel has real aggregate data behind it. Every number after
