@@ -190,12 +190,12 @@ wrong, and section 4 is why.
 number to watch and touches no recorded decision. **`niche-research` is not**, and the earlier version of
 this section was wrong to say both needed rewriting.
 
-**Why.** CE-1, recorded 2026-10-01 in Bella's own words, is "source from your own thing, mimic the format
+**Why.** CE-1, recorded 2026-10-01 in the owner's own words, is "source from your own thing, mimic the format
 that is already winning, never invent", and `DECISIONS.md` calls it the product rather than just her
 process. Rewriting `niche-research` against section 6 would gut it. Section 6 as originally written
 claimed a contradiction the data does not establish, see the correction there.
 
-**Neither skill should be rewritten without Bella.** The question is staged for her at
+**Neither skill should be rewritten without the owner.** The question is staged for her at
 `Outbox/DECIDE-copy-what-is-winning.md`.
 
 What stands unchanged: the system is good at producing attention and unproven at producing money, and

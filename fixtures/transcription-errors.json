@@ -6,7 +6,7 @@
   "_name_row": "Replace the NAME row below with your own. The entry is here as the shape to copy, and because a misheard name is the commonest and most visible defect of the lot.",
   "errors": [
     {"heard": "world piece",            "said": "world peace",          "found": "generic. A homophone that passes a spellcheck"},
-    {"heard": "Belia",                  "said": "Bella",                "found": "NAME ROW, replace with yours. The speaker's own name, misheard in the recording this list came from"},
+    {"heard": "Belia",                  "said": "the owner",                "found": "NAME ROW, replace with yours. The speaker's own name, misheard in the recording this list came from"},
     {"heard": "as a catch",             "said": "as a coach",           "found": "a trade word the model does not expect"},
     {"heard": "couch sale",             "said": "coach sale",           "found": "the same word again, in a different phrase"},
     {"heard": "couch",                  "said": "coach",                "found": "and bare. Three rows for one word is normal: the model gets it wrong differently each time"},

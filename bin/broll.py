@@ -3,7 +3,7 @@
 broll.py: the second picture source. Cutaways, picture in picture, lower thirds.
 
 Everything else in this kit has one camera. One speaker, one frame, captions burned
-on top. The reference edit Bella sent is not that: it cuts to close-ups of
+on top. The reference edit the owner sent is not that: it cuts to close-ups of
 handwritten notes, document mock-ups, screen recordings and event footage, and it
 does it every few seconds. That difference is one feature, not a rebuild, because
 assemble_clip.py already composites a PNG over video at a timecode. A CUTAWAY IS

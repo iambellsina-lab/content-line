@@ -26,7 +26,7 @@ Everything below was run just now, on a 180 second trim of `work/longform-test.M
 | preflight | `bin/kit_check.py --offline` | 30 passed, 0 failed, 0 warnings, 1 skipped. READY |
 
 **The repair step earns its place.** It caught two real mishearings nobody had flagged by hand:
-`Belia` to `Bella`, and `couch is what you have to sell` to `coach`, which is the difference between
+a misheard first name, and `couch is what you have to sell` to `coach`, which is the difference between
 a sofa and a coaching sale in a video about selling coaching.
 
 **I pulled five frames out of the b-roll render and looked at every one.**
@@ -81,7 +81,7 @@ check and says so.
    printed are wrong.
 8. **`caption_repair.py` turned an order into a question.** It rewrote `Stop saying your number` as
    `Stop saying your number?`, reasoning that "her line asks it rather than ordering it". Her line
-   was `Stop saying your number is impossible. What number, Bella?`. The question mark came from the
+   was `Stop saying your number is impossible. What number, [name]?`. The question mark came from the
    next sentence.
 9. **`caption_repair.py` cut 8 of 24 cards on one piece**, and said so loudly. That removed every
    caption across a nine second run of continuous speech. Fewer blockers, more silence on screen.

@@ -6,11 +6,11 @@ Written for whoever is deciding how to sell this, not for any one business.
 > **This page is about the CRM and support side of reselling. It is not the whole delivery question.**
 > Two things settled later and they live in `HOSTING-AND-PACKAGING.md`:
 >
-> - **What shape the kit itself ships in.** Bella decided it on 2026-10-08 and `DECISIONS.md` carries it
+> - **What shape the kit itself ships in.** the owner decided it on 2026-10-08 and `DECISIONS.md` carries it
 >   as KIT-1: the buyer installs it and it runs on their machine, not hosted. That page recommends a
 >   Claude Code plugin as the cheapest build of that shape, and states the case against it.
 > - **How a finished clip reaches a scheduler**, which takes media by public address rather than as a
->   file. The recommendation is GitHub Releases, with the one check that still needs Bella's yes.
+>   file. The recommendation is GitHub Releases, with the one check that still needs the owner's yes.
 >
 > Everything below still applies to shapes 2 and 3, and the terms-of-service finding is the part to read
 > before becoming anybody's support desk.
