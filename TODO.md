@@ -22,7 +22,7 @@ a pronoun with no referent, it answers a question the viewer never heard, it end
 has no turn, nothing is at stake. Each fault cites the sentence that caused it. **It must be able to
 fail a technically perfect clip**, or it is decoration.
 
-## 2. Brand voice from their own posts · `bin/brand_voice.py`
+## 2. Brand voice from their own posts · `bin/brand_voice.py` · DONE 2026-10-15
 
 **The problem.** `BRAND-INTAKE.md` is a fifteen minute questionnaire. A questionnaire returns what
 somebody thinks their voice is. Their posts contain what it actually is.
@@ -56,7 +56,7 @@ decisions.
 caption and hook drafts in that person's measured voice, shaped by what the niche rewards. Drafts for
 a human to approve. It must show which voice and niche findings drove each choice.
 
-## 5. Email · `bin/email_sequence.py`
+## 5. Email · `bin/email_sequence.py` · DONE 2026-10-15
 
 **The problem.** Nothing exists.
 
@@ -64,7 +64,7 @@ a human to approve. It must show which voice and niche findings drove each choic
 subject lines, send-day spacing and a stated purpose per email. **It writes files and never touches a
 sending platform.** Connecting it to one is a separate, later, explicit decision.
 
-## 6. Integrations · docs plus one worked example
+## 6. Integrations · `INTEGRATIONS.md` · DONE 2026-10-15
 
 **The problem.** Claude, Drive, social accounts and GoHighLevel are named in the vision and absent
 from the repo.

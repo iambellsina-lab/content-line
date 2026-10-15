@@ -1,0 +1,67 @@
+{
+  "_help": "THE OFFER SPEC, read by bin/email_sequence.py. Copy this to specs/myoffer.json, answer it in your own words, then run: python3 bin/email_sequence.py --offer specs/myoffer.json --shape welcome --out drafts/. Keys starting with an underscore are notes and are ignored. The example filled in below is a made up chiropractor selling a made up product, so that the output reads like a real sequence instead of a form.",
+  "_why_it_is_a_file": "The three sequence shapes ask for the same twelve or so facts. Answering them in a chat window means answering them again next quarter. Answering them here means the next sequence is one command.",
+  "_holes": "Leave anything you do not know out. Every missing field becomes a visible [FILL: ...] hole in the drafts, with a note saying what belongs there. That is the honest outcome: the tool cannot know your refund terms or what a customer said, so it marks the gap rather than inventing a sentence for you.",
+
+  "_required": "name, promise and audience are the only three with no sensible hole. Without them every subject line in the sequence would be a placeholder.",
+  "name": "The Desk Reset",
+  "promise": "Ten minutes a day that takes the ache out of your neck and shoulders by the end of the first week.",
+  "audience": "people who sit at a desk for eight hours and have stopped expecting their shoulders to feel normal",
+  "audience_short": "desk workers",
+  "_audience_short_note": "Two or three words, the way you would say it in a subject line. No tool can shorten the long version above without wrecking it, so this is a separate answer.",
+  "price": "$47",
+
+  "_sender": "Who signs the emails, and where a reply lands. The drafts all end with a reply invitation, so the inbox has to be one somebody reads.",
+  "sender": {
+    "name": "Dr Maya Osei",
+    "reply_to": "maya@example.com"
+  },
+
+  "_links": "Real links only. A wrong link in an open email is the most expensive mistake in a launch, so anything you leave blank here becomes a hole you have to fill by hand.",
+  "links": {
+    "product": "https://example.com/desk-reset",
+    "free_thing": "https://example.com/desk-reset/the-three-minute-fix",
+    "support": "https://example.com/help"
+  },
+
+  "_welcome_fields": "Used by --shape welcome, which goes to somebody who has just paid.",
+  "access": {
+    "where": "https://example.com/desk-reset/start",
+    "how": "Use the email address you paid with. The password came in the receipt from Stripe."
+  },
+  "first_step": "watch the four minute video called Start Here and do the first movement in it, once",
+  "stall": "day three, when the morning routine collides with an early meeting and the day gets skipped",
+
+  "_nurture_fields": "Used by --shape nurture, which goes to somebody on the list who has not bought.",
+  "free_thing": "the three minute desk fix",
+  "objections": [
+    "I have tried stretches before and they did nothing",
+    "I do not have ten minutes in the morning",
+    "surely I should see somebody in person instead"
+  ],
+  "_objections_note": "In their words, as close to verbatim as you can get. One email answers the first one. The rest stay here for you to rotate in when you rerun the sequence.",
+
+  "_shared_fields": "Read by every shape.",
+  "deliverables": [
+    "Twelve movements, each filmed from two angles, none longer than ninety seconds",
+    "A ten minute morning sequence and a three minute version for the days that fall apart",
+    "One page you can print and tape to the side of your monitor",
+    "A desk setup checklist, because the chair is usually half the problem"
+  ],
+  "not_for": "anybody with a diagnosed disc injury or nerve pain down an arm. That needs a person in a room with you, and no video can assess it.",
+  "proof": [
+    "_note: real results in real words only. Nothing here is read by the tool yet, it is where you keep the sentences you have permission to quote."
+  ],
+
+  "_launch_fields": "Used by --shape launch. Day zero is opens_on, so the first three emails land before it. ISO dates.",
+  "opens_on": "2026-11-03",
+  "closes_on": "2026-11-10",
+
+  "_next_step_fields": "Used by the last welcome email, which offers the next thing up to people who used this one.",
+  "next_step": {
+    "name": "The Standing Hour",
+    "promise": "A six week block that rebuilds the strength the sitting took, two sessions a week.",
+    "price": "$190, or two payments of $95.",
+    "link": "https://example.com/standing-hour"
+  }
+}

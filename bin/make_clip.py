@@ -468,7 +468,7 @@ def build(spec: dict, workdir: Path, check_only: bool = False) -> Path:
     if amap:
         cmd += ["-map", amap, "-c:a", "aac", "-b:a", AUDIO_BITRATE, "-ar", "48000", "-ac", "2"]
     cmd += [
-        *kit_common.video_codec("medium"),
+        *kc.video_codec("medium"),
         "-b:v", VIDEO_BITRATE, "-maxrate", "15M", "-bufsize", "20M",
         "-pix_fmt", "yuv420p", "-r", str(FPS), "-movflags", "+faststart",
         "-t", f"{duration}", str(out_path),
