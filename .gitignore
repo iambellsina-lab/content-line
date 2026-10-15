@@ -24,3 +24,7 @@ models/
 HOSTING-AND-PACKAGING.md
 
 .DS_Store
+
+# Scraped research output. Regenerate it with yt_probe.py; it is not ours to ship,
+# and this directory has already had to be purged from this history once.
+research/

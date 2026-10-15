@@ -1,0 +1,84 @@
+{
+ "built_from": {
+  "queries": [
+   "couples in business together",
+   "entrepreneur couple",
+   "husband wife business partners"
+  ],
+  "videos": 116,
+  "winners": 24,
+  "dropped_as_entertainment": 16,
+  "cut": "top quartile by views, within each format, after dropping entertainment"
+ },
+ "confident": true,
+ "caveat": "Titles, view counts and durations only. Nothing here knows retention, thumbnails, posting time, or how big the channel already was. Treat it as a direction, never as a prediction.",
+ "views": {
+  "median_all": 2991.5,
+  "median_winners": 47743.5
+ },
+ "duration_seconds": {
+  "median_winning_longform": 789.5,
+  "median_winning_short": null,
+  "median_all_longform": 1050,
+  "shorts_in_sample": 67
+ },
+ "hooks": [
+  {
+   "hook": "stakes",
+   "winners_using_it": 2,
+   "winner_rate": 0.083,
+   "rest_rate": 0.013,
+   "lift": 4.03,
+   "recommend": false
+  },
+  {
+   "hook": "number",
+   "winners_using_it": 3,
+   "winner_rate": 0.125,
+   "rest_rate": 0.053,
+   "lift": 2.16,
+   "recommend": false
+  },
+  {
+   "hook": "first_person",
+   "winners_using_it": 3,
+   "winner_rate": 0.125,
+   "rest_rate": 0.053,
+   "lift": 2.16,
+   "recommend": false
+  },
+  {
+   "hook": "you",
+   "winners_using_it": 0,
+   "winner_rate": 0.0,
+   "rest_rate": 0.0,
+   "lift": 1.0,
+   "recommend": false
+  },
+  {
+   "hook": "question",
+   "winners_using_it": 7,
+   "winner_rate": 0.292,
+   "rest_rate": 0.329,
+   "lift": 0.89,
+   "recommend": false
+  },
+  {
+   "hook": "imperative",
+   "winners_using_it": 0,
+   "winner_rate": 0.0,
+   "rest_rate": 0.013,
+   "lift": 0.43,
+   "recommend": false
+  },
+  {
+   "hook": "contrarian",
+   "winners_using_it": 0,
+   "winner_rate": 0.0,
+   "rest_rate": 0.079,
+   "lift": 0.11,
+   "recommend": false
+  }
+ ],
+ "words_that_travel": []
+}

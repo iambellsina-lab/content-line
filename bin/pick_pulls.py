@@ -386,6 +386,30 @@ def snip(t, n=60):
 
 # ---------------------------------------------------------------- scoring
 
+# Hook patterns live in niche_calibrate.py. Importing them rather than copying
+# means the shape the research measured and the shape the clipper looks for are
+# the same object, and cannot drift apart over time.
+try:
+    from niche_calibrate import HOOKS as _HOOK_RX
+except Exception:
+    _HOOK_RX = {}
+
+NICHE_HOOKS = {}       # {hook name: measured lift}, only the recommended ones
+NICHE_SOURCE = None
+
+
+def load_niche(path):
+    """Read a profile from niche_calibrate.py. Only shapes it marked recommend
+    are used, so a thin sample changes no ranking at all."""
+    global NICHE_HOOKS, NICHE_SOURCE
+    with open(path, encoding="utf-8") as fh:
+        prof = json.load(fh)
+    NICHE_HOOKS = {h["hook"]: h["lift"] for h in prof.get("hooks", []) if h.get("recommend")}
+    NICHE_SOURCE = {"path": str(path), "videos": prof.get("built_from", {}).get("videos"),
+                    "confident": prof.get("confident"), "using": sorted(NICHE_HOOKS)}
+    return NICHE_SOURCE
+
+
 def score_window(sents, i, j):
     """Score sentences i..j inclusive. Returns (score, reasons list, flags dict)."""
     W = sents[i:j + 1]
@@ -413,6 +437,24 @@ def score_window(sents, i, j):
     if first["n_words"] <= 16 and hp:
         hp += 3; hev.append("short, %d words" % first["n_words"])
     add("hook", min(15.0, hp), "; ".join(hev))
+
+    # 1b does the opener match a shape this niche actually rewards
+    #
+    # The points above are hand set. These are measured: niche_calibrate.py reads
+    # real view counts and reports which opening shapes the winners in this niche
+    # use more than everyone else. A shape only arrives here if enough winners
+    # used it, so an absent or thin profile contributes exactly nothing rather
+    # than quietly nudging the ranking.
+    if NICHE_HOOKS:
+        text = first["text"]
+        matched = [(name, lift) for name, lift in NICHE_HOOKS.items()
+                   if name in _HOOK_RX and _HOOK_RX[name].search(text)]
+        if matched:
+            matched.sort(key=lambda m: -m[1])
+            name, lift = matched[0]
+            pts = min(6.0, 4.0 * (lift - 1.0))
+            add("niche_shape", pts,
+                "opens like a %s, which wins %.2fx more often in this niche" % (name, lift))
 
     # 2 question then answer
     qpos = None
@@ -692,7 +734,17 @@ def main():
     ap.add_argument("--lead-in", type=int, choices=[0, 1], default=1,
                     help="1 (default) adds the previous sentence when it was said without a pause")
     ap.add_argument("--out", help="also write the JSON here")
+    ap.add_argument("--niche", help="a profile from niche_calibrate.py: rank moments by the "
+                                    "opening shapes this niche actually rewards")
     a = ap.parse_args()
+    if a.niche:
+        src = load_niche(a.niche)
+        if src["using"]:
+            print("  niche: ranking by %s, measured on %s videos"
+                  % (", ".join(src["using"]), src["videos"]), file=sys.stderr)
+        else:
+            print("  niche: %s supports no hook shape, ranking unchanged"
+                  % a.niche, file=sys.stderr)
 
     cues = load_cues(a.transcript)
     words = build_words(cues)
