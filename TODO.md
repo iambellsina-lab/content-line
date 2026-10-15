@@ -48,13 +48,21 @@ was made once before on this account with a hook that blocked her own request tw
 faults still refuse, because an empty caption and a time with no timezone are bugs rather than
 decisions.
 
-## 4. Generation · `bin/draft_content.py`
+## 4. Generation · `bin/draft_content.py` · DONE 2026-10-15
 
 **The problem.** `make_clip.py` renders a spec that a human wrote.
 
-**Done when** a voice profile from item 2 plus a niche profile from `niche_calibrate.py` produces
-caption and hook drafts in that person's measured voice, shaped by what the niche rewards. Drafts for
-a human to approve. It must show which voice and niche findings drove each choice.
+**Built, and the rule it obeys is the one that matters: it does not write a sentence.** Every line in
+every draft is a sentence the speaker already said, lifted from their own transcript. It chooses
+which of their sentences opens, which follow and which lands, using the measured voice and the
+measured niche, and it attributes every choice.
+
+**Two faults found by reading the output rather than by reasoning.** The first version picked
+sentences by how near they were to the speaker's median length and reordered them, which produced
+a coherent-looking paragraph that meant nothing, because a transcript's lines depend on the ones
+before them. It now runs forward from the opener and never reorders. The second: it drafted happily
+from the worst moment in a transcript, one `pick_pulls` had already scored 6.6. It now repeats what
+the other tools said about the source and labels the result a draft from a weak moment.
 
 ## 5. Email · `bin/email_sequence.py` · DONE 2026-10-15
 
