@@ -34,6 +34,7 @@ import json
 import re
 import shutil
 import subprocess
+import kit_common
 import sys
 import tempfile
 from pathlib import Path
@@ -231,7 +232,7 @@ def run(argv: list[str]) -> int:
         out.parent.mkdir(parents=True, exist_ok=True)
         args = [ffmpeg(), "-v", "error", "-i", str(src), "-vf", chain]
         if is_video:
-            args += ["-c:v", "libx264", "-profile:v", "high", "-preset", "medium",
+            args += [*kit_common.video_codec("medium"),
                      "-b:v", "12M", "-maxrate", "15M", "-bufsize", "20M", "-pix_fmt", "yuv420p",
                      "-c:a", "copy", "-movflags", "+faststart"]
         args += ["-y", str(out)]

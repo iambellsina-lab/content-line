@@ -364,3 +364,102 @@ def load_spec(spec_arg: str, brand_arg: str | None = None) -> dict:
         warn("ignored unknown key(s) in the spec: " + ", ".join(sorted(unknown))
              + ". Check the spelling against specs/example-brand.json.")
     return merged
+
+
+# ---------------------------------------------------------------------------
+# Video encoding: use the machine's media engine when it has one.
+#
+# WHY THIS EXISTS. Bella, 2026-10-15: "your video editing takes so log and makes
+# my computer run hot i need ou to fix this". The kit encoded every pass with
+# libx264, which is software H.264 running on the CPU. Measured on an Apple M4,
+# 30 seconds of 1080p:
+#
+#     libx264 -preset medium -crf 18    wall 4.56s    CPU 33.97s
+#     h264_videotoolbox -b:v 12M        wall 4.12s    CPU  3.02s
+#
+# Eleven times less CPU for the same wall clock. The CPU figure is the heat: ten
+# cores held at full tilt is what spins the fans. A clip can go through five of
+# these passes (assemble twice, broll, grade, captions), so the saving multiplies.
+#
+# Hardware encoders take a bitrate, not a CRF, because they do not do the same
+# rate-distortion search. The map below converts, erring high: a slightly larger
+# file is a better trade than a visibly worse one, and these are social clips
+# that get re-encoded by the platform anyway.
+#
+# Set LINE_ENCODER=software to force libx264 back, for an archival master or when
+# comparing output. Nothing silently degrades: pick_encoder reports what it chose.
+
+import shutil as _shutil
+import subprocess as _sp
+
+_ENCODER_CACHE: dict = {}
+
+
+def _ffmpeg_has(encoder: str) -> bool:
+    key = "has:" + encoder
+    if key in _ENCODER_CACHE:
+        return _ENCODER_CACHE[key]
+    ok = False
+    if _shutil.which("ffmpeg"):
+        try:
+            out = _sp.run(["ffmpeg", "-hide_banner", "-encoders"],
+                          capture_output=True, text=True, timeout=20).stdout
+            ok = any(line.split()[1] == encoder
+                     for line in out.splitlines() if len(line.split()) > 1)
+        except Exception:
+            ok = False
+    _ENCODER_CACHE[key] = ok
+    return ok
+
+
+def crf_to_bitrate(crf: float, width: int = 1080, height: int = 1920) -> str:
+    """A bitrate that holds up where the kit would have asked for this CRF.
+
+    Anchored at CRF 18 on 1080x1920, which is what the kit's finishing passes
+    use. Every 6 points of CRF is roughly a halving of bitrate.
+    """
+    pixels = max(1, width * height)
+    base = 12.0 * (pixels / (1080 * 1920))          # Mbps at CRF 18
+    mbps = base * (2.0 ** ((18.0 - float(crf)) / 6.0))
+    return "%dk" % int(max(1200, min(60000, mbps * 1000)))
+
+
+def pick_encoder(crf: float = 18, width: int = 1080, height: int = 1920,
+                 preset: str = "medium", quiet: bool = False) -> list:
+    """ffmpeg video arguments. Hardware when it is there, libx264 when it is not.
+
+    Returns the argument list only, so a caller still controls -pix_fmt, scaling
+    and everything else. Deliberately not clever: one decision, one place.
+    """
+    forced = os.environ.get("LINE_ENCODER", "").strip().lower()
+    want_sw = forced == "software"
+    if not want_sw and _ffmpeg_has("h264_videotoolbox"):
+        if not quiet and not _ENCODER_CACHE.get("announced"):
+            _ENCODER_CACHE["announced"] = True
+            print("  encoder: h264_videotoolbox (hardware). "
+                  "LINE_ENCODER=software forces libx264.")
+        return ["-c:v", "h264_videotoolbox", "-profile:v", "high",
+                "-b:v", crf_to_bitrate(crf, width, height),
+                "-allow_sw", "1"]
+    if not quiet and not _ENCODER_CACHE.get("announced"):
+        _ENCODER_CACHE["announced"] = True
+        reason = "forced by LINE_ENCODER" if want_sw else "no hardware encoder found"
+        print("  encoder: libx264 (software, %s)" % reason)
+    return ["-c:v", "libx264", "-profile:v", "high",
+            "-preset", str(preset), "-crf", str(int(crf))]
+
+
+def video_codec(preset: str = "medium", quiet: bool = True) -> list:
+    """Just the codec choice, for call sites that set their own -b:v.
+
+    pick_encoder derives a bitrate from a CRF. This one does not, so a caller
+    that already passes -b:v, -maxrate and -bufsize keeps control of them and
+    only the encoder swaps underneath.
+    """
+    if os.environ.get("LINE_ENCODER", "").strip().lower() != "software" \
+            and _ffmpeg_has("h264_videotoolbox"):
+        if not quiet and not _ENCODER_CACHE.get("announced"):
+            _ENCODER_CACHE["announced"] = True
+            print("  encoder: h264_videotoolbox (hardware)")
+        return ["-c:v", "h264_videotoolbox", "-profile:v", "high", "-allow_sw", "1"]
+    return ["-c:v", "libx264", "-profile:v", "high", "-preset", str(preset)]

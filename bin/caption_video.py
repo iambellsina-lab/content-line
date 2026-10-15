@@ -341,7 +341,7 @@ def build(spec: dict, workdir: Path, check_only: bool = False) -> Path:
     else:
         cmd += ["-map", f"{len(card_files) + 1}:a", "-c:a", "aac",
                 "-b:a", AUDIO_BITRATE, "-ar", "48000", "-ac", "2", "-shortest"]
-    cmd += ["-c:v", "libx264", "-profile:v", "high", "-preset", "medium",
+    cmd += [*kit_common.video_codec("medium"),
             "-b:v", VIDEO_BITRATE, "-maxrate", "15M", "-bufsize", "20M",
             "-pix_fmt", "yuv420p", "-r", str(FPS), "-movflags", "+faststart",
             "-t", f"{clip_len}", str(out_path)]
