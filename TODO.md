@@ -11,7 +11,7 @@ tool, shared helpers in `kit_common.py`. Run `python3 bin/kit_check.py` before c
 
 ---
 
-## 1. The sense filter · `bin/clip_sense.py` · IN PROGRESS
+## 1. The sense filter · `bin/clip_sense.py` · DONE 2026-10-15
 
 **The problem.** `caption_check.py` reads the captions and `hear_joins.py` plays the cuts. Both check
 craft. Neither asks the only question that matters: does this clip make sense on its own to somebody
@@ -32,13 +32,21 @@ length distribution, the words they genuinely over-use against ordinary English,
 they close, whether they swear, contraction rate, question rate, emoji rate. **Measured, never
 adjectives.** It writes `specs/voice-profile.json` and refuses on fewer than 20 samples.
 
-## 3. Publishing · `bin/schedule_post.py`
+## 3. Publishing · `bin/schedule_post.py` · DONE 2026-10-15
 
 **The problem.** `publish_media.py` gives a file a public URL. Nothing takes the next step, and
 `CHOOSING-A-SCHEDULER.md` is a decision document rather than an integration.
 
-**Done when** a rendered clip plus a caption becomes a **draft** in one scheduler, with the draft id
-printed and the autopublish flag provably false. One scheduler, not four. It never publishes.
+**Built.** Metricool, which is what `CHOOSING-A-SCHEDULER.md` already recommends. A draft is the
+default and `--live` is the override. It prints the exact payload and sends nothing until `--send`,
+and credentials come from the environment rather than from any file in this repo.
+
+**The shape was corrected mid-build.** The first version refused to publish at all, with no flag.
+Bella: *"it should only be a conversation not a ahrd gaurd."* A rule a person cannot override stops
+being a safeguard the first time it blocks something they actually asked for, and the same mistake
+was made once before on this account with a hook that blocked her own request twice. Structural
+faults still refuse, because an empty caption and a time with no timezone are bugs rather than
+decisions.
 
 ## 4. Generation · `bin/draft_content.py`
 
