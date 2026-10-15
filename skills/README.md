@@ -1,6 +1,6 @@
 # Skills
 
-Five skills that make the content line usable from inside Claude. Copy this `skills/` folder to
+Six skills that make the content line usable from inside Claude. Copy this `skills/` folder to
 wherever your Claude setup reads skills from. Claude loads each one when you say something that
 matches its description.
 
@@ -10,6 +10,7 @@ matches its description.
 | `drive-intake` | "cut up this recording" | Transcribes locally, proposes the best pulls, captions and cuts them, stages them for your yes |
 | `video-cut` | "why does this feel flat" | The craft rules: structure, cutting rhythm, captions, safe zones, loudness |
 | `social-engine` | "what should I post this week" | Which numbers matter, the one-variable test loop, batching, queueing for review |
+| `niche-engine` | "run the engine", "make my content" | The loop that joins the others: footage in a folder, reads what is winning in the niche, rebuilds that shape with their own footage, queues it |
 | `niche-research` | "what's working in this niche" | Reads real accounts and their real numbers in a browser, reports the SHAPE that is winning, never the claims |
 
 ## Placeholders
