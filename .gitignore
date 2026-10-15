@@ -28,3 +28,7 @@ HOSTING-AND-PACKAGING.md
 # Scraped research output. Regenerate it with yt_probe.py; it is not ours to ship,
 # and this directory has already had to be purged from this history once.
 research/
+
+# Bella's own niche research, measured for the Art of Your Life shop.
+# Useful locally, and not part of what a stranger clones.
+specs/niche-aoyl.json

@@ -109,7 +109,15 @@ SCRIPTS = ["kit_common.py", "make_clip.py", "caption_video.py", "pick_pulls.py",
            # are chain steps a buyer runs and none of them was parse checked here. This is a
            # parse check only: no smoke run is claimed for them, and the comment says so on
            # purpose so nobody reads a PASS on this line as "it rendered".
-           "caption_check.py", "caption_repair.py", "hear_joins.py", "broll.py"]
+           "caption_check.py", "caption_repair.py", "hear_joins.py", "broll.py",
+           # Added 2026-10-15. Every one of these shipped between 10-08 and 10-15 and none was
+           # in this list, so `kit_check` could report READY while any of them was broken. That
+           # is the same hole that let a NameError in make_clip.py through on 10-14: a check
+           # that does not cover the new code is a check that says nothing about it. Parse only,
+           # except garble.py and clip_sense.py which get real runs below.
+           "clip_sense.py", "garble.py", "draft_content.py", "schedule_post.py",
+           "niche_calibrate.py", "yt_probe.py", "brand_voice.py", "email_sequence.py",
+           "grade.py", "carousel_render.py", "add_audio.py"]
 
 # A filename a buyer can live with: lowercase, digits and single hyphens, no edges.
 GOOD_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -1055,6 +1063,134 @@ def smoke(ffmpeg, py, whisper, model, brand_arg):
                 report("PASS", "test run: name_clip.py",
                        "two clips saying the identical thing came out as %s and %s, no "
                        "date and no split number" % (names[0], names[1]))
+
+        # 5b. garble.py finds a mis-heard word, and clip_sense.py refuses to pass it.
+        # Added 2026-10-15, straight from the failure: a clip reading "home U of Stasis" came
+        # back NOTHING FOUND WRONG on real tape, because every check here is structural and a
+        # mis-heard word is grammatical. The fixture below reproduces that exact shape: a word
+        # spelled correctly in one place and split into common words in another.
+        garbled = os.path.join(tmp, "garbled.srt")
+        with open(garbled, "w", encoding="utf-8") as fh:
+            fh.write(
+                "1\n00:00:00,000 --> 00:00:06,000\n"
+                "Your body is always trying to return to homeostasis, every hour of the day.\n\n"
+                "2\n00:00:06,000 --> 00:00:12,000\n"
+                "That is what homeostasis means and why it matters so much to you.\n\n"
+                "3\n00:00:12,000 --> 00:00:18,000\n"
+                "So when you are outside of home U of Stasis, your arousal state climbs.\n\n"
+                "4\n00:00:18,000 --> 00:00:24,000\n"
+                "But the whole body is simply working to bring you back again.\n\n")
+        rc, out, err = run([py, os.path.join(HERE, "garble.py"), garbled], 60)
+        if rc is None:
+            report("FAIL", "test run: garble.py", err or "would not run")
+        elif "homeostasis" not in out or "home U of Stasis" not in out:
+            report("FAIL", "test run: garble.py",
+                   "did not flag 'home U of Stasis' against 'homeostasis': %s"
+                   % (tail(out or err) or "no output"),
+                   "Run it by hand: %s bin/garble.py %s" % (PYCMD, garbled))
+        elif rc != 1:
+            report("FAIL", "test run: garble.py",
+                   "found the word but exited %s instead of 1, so nothing can gate on it" % rc)
+        else:
+            # and it must stay quiet on a transcript that does not contradict itself
+            clean = os.path.join(tmp, "clean.srt")
+            with open(clean, "w", encoding="utf-8") as fh:
+                fh.write(
+                    "1\n00:00:00,000 --> 00:00:06,000\n"
+                    "Stop calling your income goal a vision, because it is not one at all.\n\n"
+                    "2\n00:00:06,000 --> 00:00:12,000\n"
+                    "A vision is something imaginary until you put a real number on it.\n\n")
+            rc2, out2, _ = run([py, os.path.join(HERE, "garble.py"), clean], 60)
+            if rc2 != 0:
+                report("FAIL", "test run: garble.py",
+                       "flagged a clean transcript, exit %s: %s" % (rc2, tail(out2)),
+                       "A word check that cries wolf gets turned off, and then it protects "
+                       "nothing.")
+            else:
+                report("PASS", "test run: garble.py",
+                       "found 'home U of Stasis' as 'homeostasis' and stayed quiet on a "
+                       "transcript that does not contradict itself")
+
+        # 5c. --fix across a cue boundary. This is the half that was wrong twice: the real tape
+        # splits one occurrence as "home U" at the end of cue 142 and "of Stasis" at the start of
+        # 143. A find and replace in an editor fixes the other four and misses that one, and the
+        # first version of --fix missed it too, because findings were keyed on the cue start time
+        # and the two garbles inside one cue collapsed into a single finding.
+        split = os.path.join(tmp, "split.srt")
+        with open(split, "w", encoding="utf-8") as fh:
+            fh.write(
+                "1\n00:00:00,000 --> 00:00:06,000\n"
+                "Your body is always working its way back toward homeostasis, hour by hour.\n\n"
+                "2\n00:00:06,000 --> 00:00:12,000\n"
+                "That is what homeostasis means, and it is why the feeling passes at all.\n\n"
+                "3\n00:00:12,000 --> 00:00:18,000\n"
+                "You learned about home U of Stasis in school, and essentially home U\n\n"
+                "4\n00:00:18,000 --> 00:00:24,000\n"
+                "of Stasis is simply the baseline your body keeps returning to.\n\n")
+        fixed = os.path.join(tmp, "split-fixed.srt")
+        rc, out, err = run([py, os.path.join(HERE, "garble.py"), split, "--fix", fixed], 60)
+        if rc is None:
+            report("FAIL", "garble.py --fix across a cue break", err or "would not run")
+        elif not os.path.isfile(fixed):
+            report("FAIL", "garble.py --fix across a cue break", "wrote no file",
+                   tail(out or err))
+        else:
+            body = open(fixed, encoding="utf-8").read()
+            rc2, out2, _ = run([py, os.path.join(HERE, "garble.py"), fixed], 60)
+            if "home U" in body or "of Stasis" in body:
+                report("FAIL", "garble.py --fix across a cue break",
+                       "left a garble in the file it wrote, so a word split over a subtitle "
+                       "break is still there", tail(out2))
+            elif body.count("homeostasis") != 4:
+                report("FAIL", "garble.py --fix across a cue break",
+                       "expected 4 'homeostasis' in the output and found %d"
+                       % body.count("homeostasis"))
+            elif rc2 != 0:
+                report("FAIL", "garble.py --fix across a cue break",
+                       "its own output still flags: %s" % tail(out2))
+            elif rc != 0:
+                report("FAIL", "garble.py --fix across a cue break",
+                       "repaired the file but exited %s" % rc)
+            else:
+                report("PASS", "garble.py --fix across a cue break",
+                       "repaired a word split between two cues and its own output came back "
+                       "clean")
+
+        # the point of all of it: clip_sense must now refuse the clip that passed before
+        pulls_j = os.path.join(tmp, "pulls.json")
+        with open(pulls_j, "w", encoding="utf-8") as fh:
+            json.dump({"source": garbled,
+                       "pulls": [{"start": 12.0, "end": 24.0, "duration": 12.0,
+                                  "text": "So when you are outside of home U of Stasis, your "
+                                          "arousal state climbs. But the whole body is simply "
+                                          "working to bring you back again. That is the whole "
+                                          "of it."}]}, fh)
+        rc, out, err = run([py, os.path.join(HERE, "clip_sense.py"), pulls_j, "--json"], 60)
+        if rc is None:
+            report("FAIL", "test run: clip_sense.py mis-heard word", err or "would not run")
+        else:
+            try:
+                got = json.loads(out)
+            except ValueError:
+                got = None
+            if not got:
+                report("FAIL", "test run: clip_sense.py mis-heard word",
+                       "no JSON came back", tail(out or err))
+            else:
+                names = [f.get("fault") for f in got.get("faults", [])]
+                if "may contain a mis-heard word" not in names:
+                    report("FAIL", "test run: clip_sense.py mis-heard word",
+                           "passed a clip containing 'home U of Stasis' with faults %s" % names,
+                           "This is the exact failure the check was built for. If it is green "
+                           "here and the check is gone, the clip ships with the wrong word.")
+                elif got.get("word_check") != garbled:
+                    report("FAIL", "test run: clip_sense.py mis-heard word",
+                           "did not report which transcript it checked against (%r)"
+                           % got.get("word_check"))
+                else:
+                    report("PASS", "test run: clip_sense.py mis-heard word",
+                           "refused a clip reading 'home U of Stasis' and named the "
+                           "transcript it checked against")
 
         # 6. cards_from_srt.py survives the things real speech does
         awk = os.path.join(KIT, "fixtures", "awkward")

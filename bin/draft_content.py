@@ -45,6 +45,10 @@ try:
     from clip_sense import check as sense_check, verdict as sense_verdict
 except Exception:
     sense_check = None
+try:
+    import garble
+except Exception:
+    garble = None
 
 
 def words(s):
@@ -232,7 +236,7 @@ def drift(draft, voice):
     return out
 
 
-def render(d, voice, n):
+def render(d, voice, n, suspects=None):
     if "problem" in d:
         return ("\n  %d. SKIPPED: %s\n     closest thing in it: \"%s\"\n"
                 % (n, d["problem"], d["closest"]))
@@ -254,7 +258,7 @@ def render(d, voice, n):
         for x in dr:
             s += "       - %s\n" % x
     if sense_check:
-        faults, _ = sense_check(d["lines"])
+        faults, _ = sense_check(d["lines"], suspects=suspects)
         word, _ = sense_verdict(faults)
         s += "\n     sense check: %s" % word
         for f in faults:
@@ -272,11 +276,22 @@ def main():
     ap.add_argument("--niche", help="niche_calibrate.py profile")
     ap.add_argument("--out", help="write markdown drafts here")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--transcript", help="the full transcript, for the mis-heard word check. "
+                                         "The pulls file usually names its own")
     a = ap.parse_args()
 
-    pulls = json.loads(Path(a.pulls).read_text()).get("pulls", [])
+    pulls_doc = json.loads(Path(a.pulls).read_text())
+    pulls = pulls_doc.get("pulls", [])
     if not pulls:
         sys.exit("  no pulls in %s" % a.pulls)
+
+    # A draft is a caption, which is the last place anybody wants to find a word the
+    # transcriber invented. The pulls file names the transcript it came from, so the mis-heard
+    # word check costs nothing to run here and the alternative is finding out after posting.
+    suspects = []
+    src = a.transcript or pulls_doc.get("source")
+    if garble and src and Path(src).is_file():
+        suspects = garble.find(garble.words_with_times(src))
     voice = json.loads(Path(a.voice).read_text())
     rewarded = {}
     if a.niche:
@@ -293,12 +308,17 @@ def main():
           % (len(pulls), len(drafts),
              ", %d of them from moments that are probably not here to be posted" % weak if weak else ""))
     print("  Every line below is a sentence they already said. Nothing here was written for them.")
+    if suspects:
+        print("  %d suspected mis-heard word(s) in the transcript. Any draft sitting on one says so."
+              % len(suspects))
+    elif not src:
+        print("  No transcript to check the words against, so a mis-heard word would not be caught.")
     if rewarded:
         print("  Niche shapes in play: %s" % ", ".join(sorted(rewarded)))
     else:
         print("  No niche profile, or it supported no shape, so openers were chosen on their own merit.")
     for i, d in enumerate(drafts, 1):
-        print(render(d, voice, i))
+        print(render(d, voice, i, suspects))
     if a.out:
         out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
         for i, d in enumerate(drafts, 1):

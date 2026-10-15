@@ -19,6 +19,18 @@ much weaker claim.
 It must be able to fail a clip that every other check passes. A tool that only
 agrees with the other tools is decoration.
 
+THE MIS-HEARD WORD, added 2026-10-15 after it got through. Every check in here is
+structural, so a sentence can pass all of them while containing a word the
+transcriber invented. It happened on the first real run: a clip reading "when
+you're outside of home U of Stasis" came back NOTHING FOUND WRONG, because that
+sentence opens cleanly, finishes, and carries a turn. The speaker said
+homeostasis.
+
+So `garble.py` reads the whole transcript, finds the places it spells the same
+word two different ways, and this flags any clip sitting on one of them. It is
+serious rather than fatal: the moment is usually still the right moment, and what
+it needs is a person fixing one word, not the clip thrown away.
+
 Usage:
     python3 bin/clip_sense.py clip.srt
     python3 bin/clip_sense.py pulls.json --pull 2
@@ -29,6 +41,8 @@ import json
 import re
 import sys
 from pathlib import Path
+
+import garble
 
 # A clip that opens on one of these MAY be answering something the viewer never
 # heard. Only may: a connective on its own proves nothing.
@@ -60,11 +74,35 @@ ORPHAN_PRONOUN = re.compile(
     r"one|both|such)\b", re.I)
 
 # Things that only mean something inside the full recording.
+#
+# The second group was added 2026-10-15 after the first end to end run on real
+# tape. Twenty nine minutes of a live class produced six moments and this file
+# passed all six, while one of them contained "Thank you for listening. If you
+# made it through this whole video, sorry for the double look, I just thought it
+# would be best to record two versions of this." Four separate tells that the clip
+# is a piece of something longer, and none of them matched.
+#
+# The lesson is the obvious one: the first list was written by imagining what a
+# speaker might say. The second was written by reading what one actually said.
 INTERNAL_REFERENCE = re.compile(
     r"\b(as i (said|mentioned)|like i said|earlier|a minute ago|before the break|"
     r"back to|going back|as we discussed|in the last (episode|video|part)|"
     r"we talked about|i told you|coming up|in a (second|minute|moment)|stay tuned|"
-    r"next (week|episode|time)|last (week|episode|time))\b", re.I)
+    r"next (week|episode|time)|last (week|episode|time)"
+    # session furniture: the speaker talking about the recording or the session
+    r"|thank(s| you) for (listening|watching|joining)|if you made it (through|this far)"
+    r"|this (whole |entire )?(video|recording|session|call|class|training)"
+    r"|record(ing|ed)? (two|2|another|a second) version"
+    r"|we('re| are) (closing out|wrapping up|out of time|almost done)"
+    r"|i(''|')?ll leave you with|leave you with this"
+    r"|welcome (to|back to) (week|day|session|part|module)"
+    r"|\bworkbooks?\b|\bworksheets?\b|\bhandouts?\b|the slides"
+    r"|lock in with me|stick with me|stay with me|follow along"
+    r"|as we go through (this|it)|let'?s dive (in|into)"
+    r"|last (session|class|call)|next (session|class|call)"
+    r"|that(''|')?s your homework|for homework"
+    r"|see you (next|then)|before we (go|finish|wrap)"
+    r")\b", re.I)
 
 # A clip wants a turn in it: a moment where the thought changes direction. Without
 # one it is a statement held for forty seconds, and nobody stays.
@@ -81,6 +119,16 @@ STAKES = re.compile(
 
 # An ending that stops rather than lands.
 UNFINISHED_TAIL = re.compile(r"(,|;|:|\band\b|\bbut\b|\bso\b|\bbecause\b|\bwhich\b|\bthat\b)\s*$", re.I)
+
+# A placeholder the speaker says out loud while teaching: "came from XYZ background", "but
+# Bella, XYZ, XYZ, no". It stands in for an example they did not bother to invent, which is fine
+# in a room and unreadable in a caption. Measured over 708 sentences from five transcripts: 3
+# hits, all three genuine, no false positives. Narrow on purpose. The looser idea this replaced,
+# flagging a sentence that ends on a dangling verb or preposition, was measured on the same 708
+# and threw 27 hits that were almost all ordinary English ("the world needs you to", "it is what
+# it is"), so it was not added. A check that cries wolf gets switched off.
+PLACEHOLDER = re.compile(r"\b(x\.?\s?y\.?\s?z|blah\s*blah|yada\s*yada|dot\s+dot\s+dot|"
+                         r"so\s+on\s+and\s+so\s+forth|insert\s+\w+\s+here)\b", re.I)
 
 FILLER_ONLY = re.compile(r"^\s*(um+|uh+|er+|ah+|yeah|right|okay|ok|so|well|like|you know)[\s,.]*$", re.I)
 
@@ -114,7 +162,7 @@ def sentences(cues):
     return [p.strip() for p in parts if p.strip()]
 
 
-def check(sents, seconds=None):
+def check(sents, seconds=None, suspects=None):
     """Every fault names the sentence that caused it. A fault nobody can point at
     is an opinion."""
     faults, notes = [], []
@@ -194,6 +242,34 @@ def check(sents, seconds=None):
         faults.append({"fault": "too few sentences", "severity": "serious",
                        "why": "%d sentence(s): not enough for a thought to develop" % len(sents),
                        "evidence": ""})
+    # --- the words themselves --------------------------------------------
+    for sent in sents:
+        m = PLACEHOLDER.search(sent)
+        if m:
+            faults.append({"fault": "says a placeholder out loud", "severity": "serious",
+                           "why": "%r stands in for an example that was never given. It passes "
+                                  "in a live room and reads as a mistake in a caption"
+                                  % m.group(0),
+                           "evidence": sent[:110]})
+            break
+
+
+    # Structural checks cannot hear a wrong word. These come from garble.py, which found them
+    # by catching the transcript spelling the same word two different ways.
+    by_word = {}
+    for sus in (suspects or []):
+        if sus["heard"].lower() in body.lower():
+            by_word.setdefault(sus["probably"], []).append(sus)
+    for right, group in sorted(by_word.items()):
+        heard = sorted({g["heard"] for g in group})
+        faults.append({"fault": "may contain a mis-heard word", "severity": "serious",
+                       "why": "the transcript writes %s here and %r %d time(s) elsewhere, so "
+                              "one of them is wrong. Check the tape and fix the word before "
+                              "this becomes a caption"
+                              % (" and ".join(repr(h) for h in heard), right,
+                                 group[0]["used_elsewhere"]),
+                       "evidence": heard[0]})
+
     if seconds and len(words) and seconds > 0:
         wpm = len(words) / (seconds / 60.0)
         if wpm < 95:
@@ -230,13 +306,14 @@ def load(path, pull):
         pl = pulls[idx]
         text = pl.get("text") or pl.get("full_text") or pl.get("opening_sentence", "")
         secs = pl.get("duration") or (pl.get("end", 0) - pl.get("start", 0) or None)
-        return [s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()], secs
+        return ([s.strip() for s in re.split(r"(?<=[.!?])\s+", text) if s.strip()], secs,
+                data.get("source"))
     cues = parse_srt(raw)
     secs = None
     timed = [c for c in cues if c["start"] is not None]
     if timed:
         secs = timed[-1]["end"] - timed[0]["start"]
-    return sentences(cues), secs
+    return sentences(cues), secs, str(p)
 
 
 def main():
@@ -245,15 +322,32 @@ def main():
     ap.add_argument("clip", help="an SRT of one clip, or a pick_pulls.py JSON")
     ap.add_argument("--pull", type=int, help="which pull from a JSON, 1 based")
     ap.add_argument("--json", action="store_true", help="machine readable")
+    ap.add_argument("--transcript", help="the full transcript, for the mis-heard word check. "
+                                         "A pick_pulls JSON names its own, so this is only "
+                                         "needed when checking a bare SRT of one clip")
+    ap.add_argument("--no-word-check", action="store_true",
+                    help="skip the mis-heard word check")
     a = ap.parse_args()
 
-    sents, secs = load(a.clip, a.pull)
-    faults, notes = check(sents, secs)
+    sents, secs, source = load(a.clip, a.pull)
+
+    # The mis-heard word check needs the WHOLE transcript, because the signal is the tape
+    # contradicting itself. One clip in isolation has nothing to contradict.
+    suspects, word_check = [], None
+    full = a.transcript or source
+    if not a.no_word_check and full and Path(full).is_file():
+        suspects = garble.find(garble.words_with_times(full))
+        word_check = full
+    faults, notes = check(sents, secs, suspects)
+    if not a.no_word_check and not word_check:
+        notes.append("no transcript to check the words against, so a mis-heard word would not "
+                     "be caught here. Pass --transcript to turn that check on")
     word, code = verdict(faults)
 
     if a.json:
         print(json.dumps({"verdict": word, "faults": faults, "notes": notes,
-                          "sentences": len(sents), "seconds": secs}, indent=1))
+                          "sentences": len(sents), "seconds": secs,
+                          "word_check": word_check}, indent=1))
         return code
 
     print("\n  %s" % word)
