@@ -824,6 +824,52 @@ def assemble_probe(ffmpeg, ffprobe, py, tmp):
                "finished videos to be rebuilt, and it is what this tool exists to prevent.\n"
                "Do not render a batch until this passes.")
 
+    # Cards land in their own window and nowhere else. Added 2026-10-15 with the change that
+    # made stage 2 seventeen times faster: every caption PNG used to be looped for the whole
+    # piece, so a 48 second clip with 34 cards spent 415 seconds in stage 2 while stage 1 took
+    # 8. Each layer now runs only for as long as its card is up and is padded into position.
+    # That is exactly the kind of change that renders fine and puts every caption at the wrong
+    # moment, and the test above would not notice because it has one card covering most of the
+    # clip. This one has a card, a deliberate gap, and a second card.
+    timing = {"source": src, "out_dir": out_dir, "times": "clip", "keep_audio": False,
+              "pieces": [{"piece": "timing", "filename": "assemble-timing",
+                          "duration": 4.0,
+                          "segments": [{"start": 0.0, "end": 2.0},
+                                       {"start": 2.0, "end": 4.0}],
+                          "cards": [{"text": "FIRST CARD", "start": 0.2, "end": 1.2},
+                                    {"text": "SECOND CARD", "start": 2.6, "end": 3.8}]}]}
+    tpath = os.path.join(tmp, "assemble-timing.json")
+    with open(tpath, "w") as fh:
+        json.dump(timing, fh)
+    tout = os.path.join(out_dir, "assemble-timing.mp4")
+    rc, sout, err = run([py, os.path.join(HERE, "assemble_clip.py"), tpath,
+                         "--style", style_path], 300, cwd=tmp)
+    if rc != 0 or not os.path.exists(tout):
+        report("FAIL", "assemble_clip.py puts each card in its own window",
+               ("exited %s" % rc) + ": " + tail(err or sout, 4))
+    else:
+        # inside card one, inside the gap, inside card two
+        ink = [ink_pixels(py, ffmpeg, tout, tmp, at) for at in (0.7, 1.9, 3.2)]
+        if any(n is None for n in ink):
+            report("SKIP", "assemble_clip.py puts each card in its own window",
+                   "could not pull the frames to look at")
+        elif ink[0] <= 400 or ink[2] <= 400:
+            report("FAIL", "assemble_clip.py puts each card in its own window",
+                   "a card window is blank: ink at 0.7s=%d, gap 1.9s=%d, 3.2s=%d"
+                   % tuple(ink),
+                   "The caption did not draw while its card was supposed to be up. If stage "
+                   "2 was made faster, this is the cost: check the layer timing.")
+        elif ink[1] > 400:
+            report("FAIL", "assemble_clip.py puts each card in its own window",
+                   "a caption is on screen during the gap between cards: ink at 0.7s=%d, "
+                   "gap 1.9s=%d, 3.2s=%d" % tuple(ink),
+                   "Cards are being held past their end, so the wrong words sit over the "
+                   "wrong footage.")
+        else:
+            report("PASS", "assemble_clip.py puts each card in its own window",
+                   "ink at 0.7s=%d and 3.2s=%d with %d in the gap between them"
+                   % (ink[0], ink[2], ink[1]))
+
 
 def render_probe(label, spec, tmp, py, ffmpeg, ffprobe, name, at):
     spec_path = os.path.join(tmp, name + ".json")

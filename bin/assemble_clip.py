@@ -625,8 +625,12 @@ def stage1_cmd(src: Path, piece: Piece, style: dict, colour: dict, out: Path) ->
     export = style.get("export") or {}
     return [ffmpeg_bin(), "-y", "-hide_banner", "-loglevel", "error"] + args + [
         "-filter_complex", ";".join(chain), "-map", "[vout]", "-map", "[ac]",
-        "-c:v", "libx264", "-preset", "veryfast",
-        "-crf", str(int(export.get("intermediate_crf", 14))),
+        # Hardware when the machine has it. This script was missed when the rest of the kit
+        # moved off libx264 on 2026-10-14, and it is the one the documented chain uses for
+        # finished clips, so every clip a buyer actually renders was still taking the slow
+        # path: two software encodes of the same footage, which is what made her machine hot.
+        *kc.pick_encoder(crf=int(export.get("intermediate_crf", 14)),
+                         width=W, height=H, preset="veryfast"),
         "-pix_fmt", "yuv420p", "-r", str(FPS),
         # The intermediate's audio is the assembled source sound, untouched. Any
         # normalisation happens in stage two, after it can be measured.
@@ -654,15 +658,27 @@ def stage2_cmd(base: Path, piece: Piece, layers: list[Layer], style: dict,
                    and abs((o.end if side == "before" else o.start) - edge) < touch
                    for o in layers)
 
+    # Each layer input lasts only as long as the layer is on screen, then gets shifted into
+    # place. It used to be looped for the WHOLE piece: 35 caption PNGs each became a full
+    # length 1080x1920 RGBA stream with a fade filter running over all of it, when each card
+    # is up for about a second and a half. The enable= below gates the blend, never the work,
+    # so stage 2 spent 415 seconds on a 48 second clip while stage 1 took 8. That is the heat.
     for i, layer in enumerate(layers):
-        args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{total:.3f}", "-i", str(layer.png)]
+        dur = max(1.0 / FPS, layer.end - layer.start)
+        args += ["-loop", "1", "-framerate", str(FPS), "-t", f"{dur:.3f}", "-i", str(layer.png)]
         steps = [f"[{i + 1}:v]format=rgba"]
         if fade > 0:
+            # local time now: the stream starts when the card does
             if not touching(layer, "before"):
-                steps.append(f"fade=t=in:st={layer.start:.3f}:d={fade:.3f}:alpha=1")
+                steps.append(f"fade=t=in:st=0:d={fade:.3f}:alpha=1")
             if not touching(layer, "after"):
-                steps.append(f"fade=t=out:st={max(0.0, layer.end - fade):.3f}:"
+                steps.append(f"fade=t=out:st={max(0.0, dur - fade):.3f}:"
                              f"d={fade:.3f}:alpha=1")
+        # tpad, not setpts: a delayed stream makes overlay wait for its first frame, and the
+        # base stalls behind it. Transparent padding keeps both streams starting at zero.
+        if layer.start > 0:
+            steps.append(f"tpad=start_duration={layer.start:.3f}:"
+                         f"start_mode=add:color=0x00000000")
         chain.append(",".join(steps) + f"[l{i}]")
         # gte/lt, not between(): between() is inclusive at both ends, so on the
         # frame where one card ends and the next starts both would be drawn.
@@ -682,7 +698,7 @@ def stage2_cmd(base: Path, piece: Piece, layers: list[Layer], style: dict,
     cmd += ["-filter_complex", ";".join(chain), "-map", "[vout]"]
     if keep_audio:
         cmd += ["-map", "0:a:0"]
-    cmd += audio + ["-c:v", "libx264", "-profile:v", "high", "-preset", "medium",
+    cmd += audio + [*kc.video_codec("medium"),
                     "-b:v", str(export.get("video_bitrate", VIDEO_BITRATE)),
                     "-maxrate", "15M", "-bufsize", "20M", "-pix_fmt", "yuv420p",
                     "-r", str(FPS), "-movflags", "+faststart",
