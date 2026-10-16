@@ -217,7 +217,16 @@ def check(sents, seconds=None, suspects=None):
             break
 
     # --- the ending -------------------------------------------------------
-    if UNFINISHED_TAIL.search(last.rstrip(".!?")) or not re.search(r"[.!?]$", last):
+    # "that" and "so" end sentences perfectly well: "Nobody understands that.", "I think so."
+    # Stripping the full stop and then seeing a trailing "that" flagged 26 of 643 real
+    # sentences across four transcripts, every one of them finished, and nothing genuine. So
+    # when the speaker put a full stop there, those two are allowed; the rest of the list
+    # cannot close a sentence whatever punctuation follows.
+    finished = bool(re.search(r"[.!?]$", last))
+    stem = last.rstrip(".!?")
+    cut_off = bool(UNFINISHED_TAIL.search(stem)) and not (
+        finished and re.search(r"\b(that|so)\s*$", stem, re.I))
+    if cut_off or not finished:
         faults.append({"fault": "ends mid sentence", "severity": "fatal",
                        "why": "the last line stops rather than finishes",
                        "evidence": last[-110:]})
