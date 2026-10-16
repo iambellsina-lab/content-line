@@ -412,8 +412,13 @@ def build(spec: dict, workdir: Path, check_only: bool = False) -> Path:
     # ---- assemble the ffmpeg call -----------------------------------------
     cmd = [ffmpeg_bin(), "-y", "-hide_banner", "-loglevel", "error"]
     cmd += ["-loop", "1", "-framerate", str(FPS), "-t", f"{duration}", "-i", str(bg_path)]
-    for p in card_files:
-        cmd += ["-loop", "1", "-framerate", str(FPS), "-t", f"{duration}", "-i", str(p)]
+    # Each card input lasts only as long as the card is up, then tpad shifts it into
+    # place. Looping every card for the whole clip is what made stage 2 of
+    # assemble_clip.py take 415 seconds on a 48 second piece: the enable= below gates
+    # the blend and never the work, so every card was a full length full canvas RGBA stream.
+    for i, p in enumerate(card_files):
+        card_dur = max(1.0 / FPS, cards[i].end - cards[i].start)
+        cmd += ["-loop", "1", "-framerate", str(FPS), "-t", f"{card_dur:.3f}", "-i", str(p)]
 
     audio_inputs = []
     if voice:
@@ -443,8 +448,13 @@ def build(spec: dict, workdir: Path, check_only: bool = False) -> Path:
     for i, card in enumerate(cards):
         nxt = f"v{i}"
         # Cut in, cut out. No fade: a fading caption reads as lag.
+        lay = f"{i+1}:v"
+        if card.start > 0:
+            chain.append(f"[{i+1}:v]format=rgba,tpad=start_duration={card.start:.3f}:"
+                         f"start_mode=add:color=0x00000000[c{i}]")
+            lay = f"c{i}"
         chain.append(
-            f"[{last}][{i+1}:v]overlay=0:0:enable='between(t,{card.start:.3f},{card.end:.3f})'[{nxt}]"
+            f"[{last}][{lay}]overlay=0:0:enable='between(t,{card.start:.3f},{card.end:.3f})'[{nxt}]"
         )
         last = nxt
 

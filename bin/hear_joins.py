@@ -123,6 +123,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 KIT_ROOT = HERE.parent
+
+sys.path.insert(0, str(HERE))
+import kit_common as kc  # noqa: E402  (after the path insert, so it resolves inside the kit)
 IS_WINDOWS = os.name == "nt"
 
 TOOL = "hear_joins/1.0"
@@ -768,7 +771,7 @@ def export_clip(clip: Clip, src: Path, out: Path, markers: dict[int, Path | None
         cmd += args
     cmd += ["-filter_complex", ";".join(chain)]
     if want_video:
-        cmd += ["-map", "[vout]", "-c:v", "libx264", "-preset", "veryfast",
+        cmd += ["-map", "[vout]", *kc.video_codec("veryfast"),
                 "-crf", "26", "-pix_fmt", "yuv420p", "-r", str(VIDEO_FPS),
                 "-movflags", "+faststart"]
     cmd += ["-map", "[aout]", "-c:a", "aac", "-b:a", AUDIO_BITRATE,

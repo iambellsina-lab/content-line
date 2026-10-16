@@ -308,7 +308,14 @@ def build(spec: dict, workdir: Path, check_only: bool = False) -> Path:
         nxt = f"v{i}"
         # gte/lt, not between(): between() is inclusive at both ends, so on the
         # frame where one card ends and the next starts both would be drawn.
-        chain.append(f"[{last}][{i + 1}:v]overlay=0:0:"
+        lay = f"{i + 1}:v"
+        if card.start > 0:
+            # tpad, not setpts: a stream that starts late makes overlay wait for its first
+            # frame and the base stalls behind it.
+            chain.append(f"[{i + 1}:v]format=rgba,tpad=start_duration={card.start:.3f}:"
+                         f"start_mode=add:color=0x00000000[c{i}]")
+            lay = f"c{i}"
+        chain.append(f"[{last}][{lay}]overlay=0:0:"
                      f"enable='gte(t,{card.start:.3f})*lt(t,{card.end:.3f})'[{nxt}]")
         last = nxt
     filter_complex = ";".join(chain)
@@ -327,8 +334,13 @@ def build(spec: dict, workdir: Path, check_only: bool = False) -> Path:
 
     cmd = [ffmpeg_bin(), "-y", "-hide_banner", "-loglevel", "error",
            "-ss", f"{t_start}", "-t", f"{clip_len}", "-i", str(src)]
-    for p in card_files:
-        cmd += ["-loop", "1", "-framerate", str(FPS), "-t", f"{clip_len}", "-i", str(p)]
+    # Each card input lasts only as long as the card is up, then tpad shifts it into
+    # place. Looping every card for the whole clip is what made stage 2 of
+    # assemble_clip.py take 415 seconds on a 48 second piece: the enable= below gates
+    # the blend and never the work, so every card was a full length 1080x1920 RGBA stream.
+    for i, p in enumerate(card_files):
+        card_dur = max(1.0 / FPS, cards[i].end - cards[i].start)
+        cmd += ["-loop", "1", "-framerate", str(FPS), "-t", f"{card_dur:.3f}", "-i", str(p)]
     if not has_audio:
         # Silence is a track; no track is a defect, because a video-only MP4 is
         # refused or mishandled by some uploads and breaks a later concat. This

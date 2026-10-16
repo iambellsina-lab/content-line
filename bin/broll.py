@@ -723,7 +723,7 @@ def build_cmd(base_path: Path, base: dict, layers: list[Layer], spec: dict,
         audio = ["-an"]
 
     cmd += ["-filter_complex", ";".join(chain + audio_bits), "-map", "[vout]"] + audio
-    video = ["-c:v", "libx264", "-profile:v", "high", "-preset", str(export["preset"]),
+    video = [*kc.video_codec(str(export["preset"])),
              "-pix_fmt", "yuv420p", "-r", f"{fps:g}", "-movflags", "+faststart"]
     if export.get("crf") is not None:
         video += ["-crf", str(int(export["crf"]))]
