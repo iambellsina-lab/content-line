@@ -1,0 +1,10 @@
+# The content line has one third-party dependency: Pillow.
+#
+# Pillow draws every caption. ffmpeg is only asked to composite the pictures, because many
+# ffmpeg builds cannot draw text at all. Pillow must be built with FreeType (every normal
+# wheel from pip is). bin/kit_check.py verifies that, not just that the import works.
+#
+# 10.1 is the floor because the built-in last-resort font needs ImageFont.load_default(size).
+# Tested: Pillow 12.3.0 on Python 3.14.8, macOS. The upper bound stays on the tested major.
+# Python 3.10 or newer is required.
+pillow>=10.1,<13

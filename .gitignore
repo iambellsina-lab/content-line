@@ -1,0 +1,54 @@
+# The environment, rebuilt by setup.sh on whatever machine this lands on
+.venv/
+__pycache__/
+*.pyc
+
+# Working files and outputs. Nobody else's footage belongs in this repo.
+work/
+out/
+raw/
+models/
+*.mp4
+*.mov
+*.MOV
+*.wav
+# Transcripts of real footage live in work/ and are ignored by the rule above. These
+# two trees hold hand written test fixtures that kit_check.py needs, and a blanket
+# *.srt rule quietly kept all nine of them out of the first public push, which is why
+# five of the self tests reported SKIP on a fresh clone.
+*.srt
+!fixtures/**/*.srt
+!specs/*.srt
+
+# Internal research carrying account ids, not part of the product
+HOSTING-AND-PACKAGING.md
+
+.DS_Store
+
+# Scraped research output. Regenerate it with yt_probe.py; it is not ours to ship,
+# and this directory has already had to be purged from this history once.
+research/
+
+# A measured niche profile belongs to whoever paid for the measurement.
+# Useful locally, and no part of what a stranger clones.
+specs/niche-aoyl.json
+
+# Session material and anything written ABOUT the owner rather than for a buyer.
+#
+# This folder is one push from public and has no private mirror to fall back on, so
+# a file like this landing here is a disclosure rather than a mess. It has now
+# happened three times. The last one was a findings file quoting her own messages
+# verbatim, typos included, under her name, and it was tracked here when the repo
+# was recreated. The three that were moved out on 2026-11-05 now live in
+# BRAIN/kit-notes/, which is outside this tree.
+#
+# WHAT BELONGS IN THE BRAIN REPO INSTEAD: anything addressed to another session,
+# any findings or measurement write-up that quotes her, and anything naming her
+# machine's paths or her accounts.
+#
+# This stops the next one being ADDED. It cannot untrack one that is already in,
+# and `git add -f` walks straight past it, so the gates in
+# BRAIN/PUBLISHING-CONTENT-LINE.md are still the thing that has to be run.
+HANDOVER-*.md
+REPLY-TO-*.md
+findings/

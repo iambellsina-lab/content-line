@@ -1,0 +1,51 @@
+{
+ "_what": "FIXTURE: a niche whose winners avoid questions and open on numbers.",
+ "built_from": {
+  "queries": [
+   "synthetic"
+  ],
+  "videos": 180,
+  "winners": 40,
+  "dropped_as_entertainment": 0,
+  "cut": "fixture, not measured from any real niche"
+ },
+ "confident": true,
+ "caveat": "A TEST FIXTURE for bin/test_niche_loop.py. Not research. Not any business's profile. Never use it to steer real content.",
+ "views": {
+  "median_all": 100000,
+  "median_winners": 1000000
+ },
+ "duration_seconds": {
+  "median_winning_longform": 600,
+  "median_winning_short": null,
+  "median_all_longform": 900,
+  "shorts_in_sample": 100
+ },
+ "hooks": [
+  {
+   "hook": "question",
+   "winners_using_it": 16,
+   "winner_rate": 0.4,
+   "rest_rate": 0.29,
+   "lift": 0.74,
+   "recommend": false
+  },
+  {
+   "hook": "number",
+   "winners_using_it": 12,
+   "winner_rate": 0.29,
+   "rest_rate": 0.21,
+   "lift": 1.35,
+   "recommend": true
+  },
+  {
+   "hook": "first_person",
+   "winners_using_it": 2,
+   "winner_rate": 0.05,
+   "rest_rate": 0.09,
+   "lift": 0.6,
+   "recommend": false
+  }
+ ],
+ "words_that_travel": []
+}

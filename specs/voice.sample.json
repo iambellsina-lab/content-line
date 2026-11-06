@@ -1,0 +1,346 @@
+{
+ "built_from": {
+  "samples": 24,
+  "files": 1,
+  "words": 277,
+  "sentences": 41,
+  "split": "blank",
+  "sample_means": "one sample is one piece with its own opening and ending",
+  "samples_per_file": {
+   "captions.txt": 24
+  }
+ },
+ "caveat": "Counts only. Nothing here has seen a view, a save or a reply, so this describes a habit and claims nothing about what the habit earns. Tone is unreadable by counting. The English frequency table, the profanity list and the imperative verb list are hand written, so figures resting on them are approximate and are flagged where they are reported.",
+ "sentence_length_words": {
+  "min": 2,
+  "p10": 4.0,
+  "p25": 4.0,
+  "median": 6.0,
+  "p75": 9.0,
+  "p90": 11.0,
+  "max": 14,
+  "n": 41,
+  "n_of": "sentences",
+  "under_8": 0.683,
+  "over_25": 0.0,
+  "thin": false
+ },
+ "contractions": {
+  "contracted": 7,
+  "written_out": 3,
+  "rate_when_possible": 0.7,
+  "n": 10,
+  "n_of": "chances to contract",
+  "thin": false,
+  "how": "explicit form list, so possessives are excluded"
+ },
+ "punctuation": {
+  "question_rate": 0.049,
+  "questions": 2,
+  "exclamation_rate": 0.0,
+  "exclamations": 0,
+  "unpunctuated_sentences": 0,
+  "n": 41,
+  "n_of": "sentences"
+ },
+ "openings": {
+  "commonest_first_words": [
+   {
+    "word": "i",
+    "count": 6
+   },
+   {
+    "word": "you",
+    "count": 4
+   },
+   {
+    "word": "it",
+    "count": 3
+   },
+   {
+    "word": "what",
+    "count": 2
+   },
+   {
+    "word": "your",
+    "count": 2
+   },
+   {
+    "word": "the",
+    "count": 2
+   },
+   {
+    "word": "then",
+    "count": 2
+   },
+   {
+    "word": "that's",
+    "count": 2
+   },
+   {
+    "word": "here's",
+    "count": 1
+   },
+   {
+    "word": "stop",
+    "count": 1
+   },
+   {
+    "word": "build",
+    "count": 1
+   },
+   {
+    "word": "three",
+    "count": 1
+   },
+   {
+    "word": "busy",
+    "count": 1
+   },
+   {
+    "word": "we",
+    "count": 1
+   },
+   {
+    "word": "nobody",
+    "count": 1
+   }
+  ],
+  "distinct_first_words": 26,
+  "n": 41,
+  "n_of": "sentences",
+  "first_sentence_shapes": [
+   {
+    "shape": "you",
+    "samples": 5,
+    "rate": 0.208
+   },
+   {
+    "shape": "first_person",
+    "samples": 5,
+    "rate": 0.208
+   },
+   {
+    "shape": "question",
+    "samples": 2,
+    "rate": 0.083
+   },
+   {
+    "shape": "imperative",
+    "samples": 1,
+    "rate": 0.042
+   },
+   {
+    "shape": "number",
+    "samples": 1,
+    "rate": 0.042
+   }
+  ],
+  "shapes_n": 24,
+  "shapes_n_of": "samples, first sentence only"
+ },
+ "closings": {
+  "classes": [
+   {
+    "lands_on": "statement",
+    "count": 14,
+    "rate": 0.583
+   },
+   {
+    "lands_on": "fragment_like",
+    "count": 6,
+    "rate": 0.25
+   },
+   {
+    "lands_on": "command",
+    "count": 3,
+    "rate": 0.125
+   },
+   {
+    "lands_on": "question",
+    "count": 1,
+    "rate": 0.042
+   }
+  ],
+  "commonest_last_sentence_first_word": [
+   {
+    "word": "it",
+    "count": 3
+   },
+   {
+    "word": "i",
+    "count": 3
+   },
+   {
+    "word": "you",
+    "count": 2
+   },
+   {
+    "word": "your",
+    "count": 2
+   },
+   {
+    "word": "that's",
+    "count": 2
+   },
+   {
+    "word": "here's",
+    "count": 1
+   },
+   {
+    "word": "build",
+    "count": 1
+   },
+   {
+    "word": "three",
+    "count": 1
+   }
+  ],
+  "n": 24,
+  "n_of": "samples with a readable last sentence",
+  "how": "question mark, then an opening imperative verb, then short with no verb. fragment_like is a heuristic without a parser and reads as a floor"
+ },
+ "over_used_vs_ordinary_english": {
+  "words": [
+   {
+    "word": "first",
+    "uses": 4,
+    "in_samples": 4,
+    "lift": 53.5
+   },
+   {
+    "word": "being",
+    "uses": 4,
+    "in_samples": 3,
+    "lift": 48.1
+   },
+   {
+    "word": "your",
+    "uses": 7,
+    "in_samples": 6,
+    "lift": 21.1
+   },
+   {
+    "word": "you",
+    "uses": 11,
+    "in_samples": 8,
+    "lift": 5.3
+   },
+   {
+    "word": "it",
+    "uses": 9,
+    "in_samples": 7,
+    "lift": 3.6
+   },
+   {
+    "word": "is",
+    "uses": 5,
+    "in_samples": 4,
+    "lift": 1.9
+   },
+   {
+    "word": "i",
+    "uses": 6,
+    "in_samples": 6,
+    "lift": 1.8
+   },
+   {
+    "word": "the",
+    "uses": 17,
+    "in_samples": 12,
+    "lift": 1.3
+   },
+   {
+    "word": "a",
+    "uses": 6,
+    "in_samples": 5,
+    "lift": 1.1
+   },
+   {
+    "word": "to",
+    "uses": 5,
+    "in_samples": 5,
+    "lift": 0.8
+   }
+  ],
+  "n": 277,
+  "n_of": "words",
+  "reference": "hand entered frequency table, 204 words, rounded",
+  "how": "lift is their rate over the reference rate, both per million. Reported only for words appearing in 3 or more samples"
+ },
+ "repeated_without_a_reference": {
+  "words": [
+   {
+    "word": "number",
+    "uses": 4,
+    "in_samples": 4
+   }
+  ],
+  "n": 277,
+  "n_of": "words",
+  "how": "outside the frequency table, so these carry a count and no lift. Mostly their subject matter"
+ },
+ "profanity": {
+  "present": false,
+  "uses": 0,
+  "samples_containing": 0,
+  "share_of_samples": 0.0,
+  "per_1000_words": 0.0,
+  "words": [],
+  "n": 24,
+  "n_of": "samples",
+  "how": "word list, uncensored and unranked by severity. Mild and strong count alike"
+ },
+ "emoji": {
+  "present": false,
+  "uses": 0,
+  "samples_containing": 0,
+  "share_of_samples": 0.0,
+  "per_sample": 0.0,
+  "commonest": [],
+  "n": 24,
+  "n_of": "samples"
+ },
+ "length_per_piece": {
+  "words_per_sample": {
+   "min": 9,
+   "p10": 10.0,
+   "p25": 11.0,
+   "median": 11.0,
+   "p75": 12.0,
+   "p90": 13.7,
+   "max": 14,
+   "n": 24,
+   "n_of": "samples"
+  },
+  "words_per_paragraph": {
+   "min": 9,
+   "p10": 10.0,
+   "p25": 11.0,
+   "median": 11.0,
+   "p75": 12.0,
+   "p90": 13.7,
+   "max": 14,
+   "n": 24,
+   "n_of": "paragraphs",
+   "note": "written samples only, transcripts have no paragraphs"
+  },
+  "hashtags_per_sample": 0.0,
+  "mentions_per_sample": 0.0,
+  "links_total": 0
+ },
+ "who_they_talk_about": {
+  "i_me_my": 9,
+  "we_us_our": 3,
+  "you_your": 18,
+  "per_1000_words": {
+   "i_me_my": 32.5,
+   "we_us_our": 10.8,
+   "you_your": 65.0
+  },
+  "n": 277,
+  "n_of": "words"
+ },
+ "thin_overall": true,
+ "_what": "A sample voice profile for bin/test_niche_loop.py, measured by brand_voice.py off 24 short captions written in one invented register. It is a TEST FIXTURE and is nobody's real voice profile: 24 samples is above the floor brand_voice enforces and far below what a real one should rest on."
+}

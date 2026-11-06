@@ -1,0 +1,62 @@
+{
+ "_what_this_is": "A TEST FIXTURE, not a real cut list. Two pieces, made up, built 2026-11-05 for bin/kit_check.py.",
+ "_why_two": "The bug this guards against is bin/clip_sense.py reading pull index 0 and nothing else when it is handed a batch with no --pull. A one piece fixture passes under that bug, so it proves nothing. The SECOND piece is the whole point of this file: a checker that reports only the first one fails on it.",
+ "_by_design": "Piece B1 carries a reference to something outside itself, which clip_sense rates SERIOUS. Piece B2 carries nothing serious. A checker that collapses a batch to one verdict cannot tell them apart, and telling them apart is the product.",
+ "_planned_by": "hand",
+ "_planned_from": null,
+ "keep_audio": false,
+ "pieces": [
+  {
+   "piece": "B1",
+   "filename": "fixture-piece-with-a-serious-fault",
+   "duration": 52.0,
+   "segments": [
+    {
+     "start": 10.0,
+     "end": 32.0,
+     "role": "opener",
+     "text": "Most people price their time by what they hope somebody will pay for it. That is backwards and it costs them a year. You price it by what the hour has to earn to cover the life you already decided on.",
+     "note": "fixture",
+     "why": "fixture"
+    },
+    {
+     "start": 80.0,
+     "end": 110.0,
+     "role": "close",
+     "text": "Go and do that sum tonight. That's your homework from the workbook.",
+     "note": "fixture",
+     "why": "fixture"
+    }
+   ],
+   "problems": [
+    "fixture: this piece exists so a per piece checker has something SERIOUS to attribute."
+   ]
+  },
+  {
+   "piece": "B2",
+   "filename": "fixture-piece-that-is-clean",
+   "duration": 48.0,
+   "segments": [
+    {
+     "start": 200.0,
+     "end": 226.0,
+     "role": "opener",
+     "text": "Three hours a week is what a second offer costs you to run. If you cannot name those three hours, you do not have a second offer, you have a second worry.",
+     "note": "fixture",
+     "why": "fixture"
+    },
+    {
+     "start": 240.0,
+     "end": 262.0,
+     "role": "close",
+     "text": "So the first move is to find the three hours, and the money question waits until after you have. Losing a quarter to a thing you never staffed is the risk here.",
+     "note": "fixture",
+     "why": "fixture"
+    }
+   ],
+   "problems": [
+    "fixture: this piece exists so the checker has something clean to contrast the other one against."
+   ]
+  }
+ ]
+}
