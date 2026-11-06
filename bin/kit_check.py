@@ -1489,6 +1489,72 @@ def smoke(ffmpeg, py, whisper, model, brand_arg):
             report("PASS", "a clip may not open on a backward-pointing connective",
                    "refused %r as fatal and allowed %r" % (dangling[:34], standalone[:34]))
 
+        # 6e. A female pronoun is caught by exactly the same rules as a male one.
+        #
+        # THE EDIT THIS EXISTS TO STOP. The kit used to call the speaker "she" in
+        # docstrings and user-facing output, written when the only speaker was its owner.
+        # Degendering that was right. But a grep for "she" and "her" ALSO returns the
+        # English pronoun tables these tools parse with: ANAPHOR here, ORPHAN_PRONOUN in
+        # clip_sense, PRONOUN_OPEN in hook_curate, SUBJECT and DETERMINER in
+        # caption_check, the stopword list in cards_from_srt, the frequency table in
+        # brand_voice. On the first pass of that sweep "she" and "her" were deleted from
+        # those lists too, and the change was reverted only because somebody read the diff.
+        #
+        # Deleting them does not degender the kit. It makes the kit WORSE AT WOMEN
+        # SPEAKERS: a clip opening "She said yes in ten seconds" stops being refused while
+        # "He said yes in ten seconds" is still refused, so a woman's clip ships with a
+        # broken opener and a man's does not.
+        #
+        # It is a SILENT edit. Every file still parses, every regex still compiles, and
+        # before this test every other check in this file still passed. The same sweep was
+        # handed to a second session on 2026-11-06 naming files that were already clean,
+        # which is how a reverted bug gets made twice.
+        #
+        # So the rule is parity, not presence: whatever the kit does to "he", it does to
+        # "she". This asserts the VERDICTS MATCH rather than hard-coding what they are, so
+        # it keeps holding if the pronoun rules themselves change later.
+        import clip_sense as _cs2
+        import pick_pulls as _pp2
+        import hook_curate as _hc2
+        tail2 = "Your biology is going to try to keep you the same."
+        pairs = [("She said yes in ten seconds.", "He said yes in ten seconds."),
+                 ("Her team doubled the price.", "His team doubled the price."),
+                 ("She still said yes.", "He still said yes.")]
+        parity_bad = []
+        for fem, masc in pairs:
+            f_fem, _ = _cs2.check([fem, tail2])
+            f_masc, _ = _cs2.check([masc, tail2])
+            v_fem = sorted((f["fault"], f["severity"]) for f in f_fem)
+            v_masc = sorted((f["fault"], f["severity"]) for f in f_masc)
+            if v_fem != v_masc:
+                parity_bad.append("clip_sense: %r -> %s but %r -> %s"
+                                  % (fem, v_fem or "nothing", masc, v_masc or "nothing"))
+            if bool(_pp2.ANAPHOR.match(fem)) != bool(_pp2.ANAPHOR.match(masc)):
+                parity_bad.append("pick_pulls.ANAPHOR disagrees on %r vs %r" % (fem, masc))
+            if bool(_hc2.PRONOUN_OPEN.match(fem)) != bool(_hc2.PRONOUN_OPEN.match(masc)):
+                parity_bad.append("hook_curate.PRONOUN_OPEN disagrees on %r vs %r"
+                                  % (fem, masc))
+        # The pair must actually be CAUGHT, or parity is satisfied by catching neither and
+        # the test proves nothing.
+        caught, _ = _cs2.check([pairs[0][0], tail2])
+        caught_fatal = [f for f in caught if f["severity"] == "fatal"]
+        if parity_bad:
+            report("FAIL", "a female pronoun is judged exactly like a male one",
+                   parity_bad[0],
+                   "A pronoun was taken out of one of the kit's pronoun tables. That does "
+                   "not degender the kit, it stops the kit catching the fault for one "
+                   "gender only. Put the pronoun back, and read the note above this "
+                   "check before you take one out again.")
+        elif not caught_fatal:
+            report("FAIL", "a female pronoun is judged exactly like a male one",
+                   "%r was not refused at all" % pairs[0][0],
+                   "Parity holds only because NEITHER is caught now, so this check is "
+                   "proving nothing. The unresolved-pronoun rule has gone missing.")
+        else:
+            report("PASS", "a female pronoun is judged exactly like a male one",
+                   "%d pair(s) got identical verdicts in clip_sense, ANAPHOR and "
+                   "PRONOUN_OPEN, and the opener is still refused" % len(pairs))
+
         # 6c. The sense check covers EVERY piece and names the file.
         #
         # The bug: clip_sense.py checks one clip, and handed a batch with no --pull it

@@ -36,19 +36,17 @@ specs/niche-aoyl.json
 # Session material and anything written ABOUT the owner rather than for a buyer.
 #
 # This folder is one push from public and has no private mirror to fall back on, so
-# a file like this landing here is a disclosure rather than a mess. It has now
-# happened three times. The last one was a findings file quoting her own messages
-# verbatim, typos included, under her name, and it was tracked here when the repo
-# was recreated. The three that were moved out on 2026-11-05 now live in
-# BRAIN/kit-notes/, which is outside this tree.
+# a file like this landing here is a disclosure rather than a mess. It has happened
+# three times, the last one a write-up quoting the owner under their own name. The
+# three files moved out on 2026-11-05 were moved outside this tree entirely.
 #
 # WHAT BELONGS IN THE BRAIN REPO INSTEAD: anything addressed to another session,
-# any findings or measurement write-up that quotes her, and anything naming her
-# machine's paths or her accounts.
+# any findings or measurement write-up that quotes the owner, and anything naming
+# their machine's paths or their accounts.
 #
 # This stops the next one being ADDED. It cannot untrack one that is already in,
-# and `git add -f` walks straight past it, so the gates in
-# BRAIN/PUBLISHING-CONTENT-LINE.md are still the thing that has to be run.
+# and `git add -f` walks straight past it, so the publishing gates are still the
+# thing that has to be run before anything goes up.
 HANDOVER-*.md
 REPLY-TO-*.md
 findings/

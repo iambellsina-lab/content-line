@@ -85,7 +85,7 @@ HARD_CONTINUATION = re.compile(
 # A pronoun with nothing before it to point at. "They never tell you that" opens on
 # a they the viewer cannot resolve, and the clip is about a group nobody named.
 ORPHAN_PRONOUN = re.compile(
-    r"^\s*(he|she|it|they|them|him|her|his|hers|their|theirs|this|that|these|those|"
+    r"^\s*(he|she|its|it|they|them|him|hers|her|his|theirs|their|this|that|these|those|"
     r"one|both|such)\b", re.I)
 
 # Things that only mean something inside the full recording.

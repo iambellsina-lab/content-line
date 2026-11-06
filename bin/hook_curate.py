@@ -61,9 +61,14 @@ MIN_WORDS = 3
 
 # A card opening on one of these names nothing. Mid clip a pronoun can point at the
 # previous line; on the first frame there is no previous line.
+# PARITY IS THE RULE HERE. This list carried "her" and not "his", so a card opening
+# "Her team doubled the price" was refused and "His team doubled the price" was chosen,
+# on the one frame that decides whether anybody watches. It also missed "their" and
+# "theirs", which is the same bug again now the kit says "they" for the speaker. The set
+# below is clip_sense.ORPHAN_PRONOUN's, plus "its". kit_check 6e holds it to parity.
 PRONOUN_OPEN = re.compile(
-    r"^[\"'“‘(]*(?:it|that|this|these|those|they|them|he|she|him|her|there|"
-    r"then|which|who)\b", re.I)
+    r"^[\"'“‘(]*(?:its|it|that|this|these|those|theirs|their|they|them|"
+    r"he|she|him|hers|her|his|there|then|which|who)\b", re.I)
 
 # Faults clip_sense raises that are still faults when the text is one card. The ones
 # left out are about a CLIP: "no turn", "nothing at stake", "too few sentences" and

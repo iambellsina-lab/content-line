@@ -63,7 +63,7 @@ UNSENT = ("**UNSENT AND UNAPPROVED DRAFT.** No sending platform has seen this fi
 HOLE = re.compile(r"\[FILL:\s*(.+?)\]", re.S)
 
 # Dashes are written as escapes rather than characters because this source file has to
-# pass BRAIN/bin/slop-lint.py too, and the linter is right to flag a literal one.
+# pass the house linter too, and the linter is right to flag a literal one.
 EM_DASH = "\u2014"
 EN_DASH = "\u2013"
 _DASH_RUN = re.compile(r"\s*[%s%s]\s*" % (EM_DASH, EN_DASH))

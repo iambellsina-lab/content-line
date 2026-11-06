@@ -84,7 +84,7 @@ WHAT IT DOES NOT CHECK, and these are real gaps, not quibbles
 
     It also knows nothing about the picture: the face, the crop, the moment the card lands.
 
-HOW IT FINDS HER LINE
+HOW IT FINDS THE LINE
 
 Every meaning check compares a card against one sentence of the recording, so it has to
 find that sentence. The transcript is reassembled into sentences with times (cue
