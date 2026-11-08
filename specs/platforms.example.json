@@ -1,0 +1,66 @@
+{
+  "_what_this_is": "Per network caption rules. One post goes out as several captions, one shaped for each place it lands. Copy this to specs/platforms.json and correct anything that looks wrong for your accounts.",
+  "_read_this_first": "Platform limits change and this file is a snapshot of what was believed true when it was written, never a live reading. Every entry carries a confidence. Anything marked 'verify' should be checked against the platform before you trust it. adapt_caption.py prints that warning on every run for a reason.",
+  "_written": "2026-11-07",
+
+  "defaults": {
+    "limit": 2200,
+    "lead": 125,
+    "max_hashtags": 5,
+    "links": "inline",
+    "mentions": "keep"
+  },
+
+  "networks": {
+    "instagram": {
+      "limit": 2200,
+      "lead": 125,
+      "max_hashtags": 10,
+      "links": "bio",
+      "mentions": "keep",
+      "confidence": "high on the 2200 and on links being unclickable in a caption. The 125 is where the 'more' fold usually falls and moves with the app.",
+      "bio_phrase": "link in bio"
+    },
+    "tiktok": {
+      "limit": 2200,
+      "lead": 80,
+      "max_hashtags": 5,
+      "links": "bio",
+      "mentions": "keep",
+      "confidence": "verify. The caption limit was 150 for years and was raised. The lead is short because the caption sits over the video and competes with it.",
+      "bio_phrase": "link in bio"
+    },
+    "threads": {
+      "limit": 500,
+      "lead": 500,
+      "max_hashtags": 1,
+      "links": "inline",
+      "mentions": "keep",
+      "confidence": "high on 500 and on links working. Threads has one topic tag rather than a hashtag block, which is why this is 1."
+    },
+    "pinterest": {
+      "limit": 500,
+      "lead": 100,
+      "max_hashtags": 0,
+      "links": "inline",
+      "mentions": "strip",
+      "confidence": "medium. Pinterest reads descriptions as search text, so plain words beat tags and a handle means nothing to it."
+    },
+    "youtube": {
+      "limit": 5000,
+      "lead": 100,
+      "max_hashtags": 3,
+      "links": "inline",
+      "mentions": "keep",
+      "confidence": "high on the description allowance. The 100 is the Shorts title, which is the part that actually gets read."
+    },
+    "facebook": {
+      "limit": 5000,
+      "lead": 250,
+      "max_hashtags": 0,
+      "links": "inline",
+      "mentions": "keep",
+      "confidence": "medium. The hard limit is far higher and irrelevant. Hashtags do close to nothing here, so they come off."
+    }
+  }
+}

@@ -1555,6 +1555,80 @@ def smoke(ffmpeg, py, whisper, model, brand_arg):
                    "%d pair(s) got identical verdicts in clip_sense, ANAPHOR and "
                    "PRONOUN_OPEN, and the opener is still refused" % len(pairs))
 
+        # 6f. A caption adapted for another network is still MADE OF HER WORDS.
+        #
+        # adapt_caption.py cuts, reorders and moves. The one thing it must never do is
+        # write a sentence, because a tool that quietly rewrites somebody in their own
+        # voice is a tool they cannot check. This holds it to that: every word that
+        # comes out has to have gone in, except the bio phrase, which is from the
+        # rules file and is therefore the owner's own words too.
+        #
+        # It also pins the two defects the first real run produced: "tr. W. W.
+        # Westcott 1887" split into five paragraphs, and a caption opening with a tag
+        # wall kept the wall over the fold.
+        try:
+            import adapt_caption as _ac
+            # NOT named src. That name holds the test video this suite makes once and
+            # reuses, and taking it here silently skipped the whisper check.
+            cap_src = ("#one #two #three #four #five\n\n"
+                       "Sefer Yetzirah 1:2, tr. W. W. Westcott 1887 is the source here. "
+                       "The ten you know are the Sephiroth. The rest are letters.\n\n"
+                       "Read it: https://example.com/path\n\n@someone")
+            cap_bad = []
+
+            nets, base = _ac.load_rules(None)
+            for net in ("instagram", "threads", "pinterest"):
+                r = _ac.rules_for(net, nets, base)
+                out, _notes = _ac.adapt(cap_src, r)
+
+                # no invented words
+                def _words(t):
+                    return set(w.lower() for w in re.findall(r"[A-Za-z']{2,}", t))
+                allowed = _words(cap_src) | _words(str(r.get("bio_phrase", "")))
+                invented = _words(out) - allowed
+                if invented:
+                    cap_bad.append("%s invented %s" % (net, sorted(invented)[:4]))
+
+
+                # the fold opens with words
+                if re.match(r"^[#@][\w.]+", out.lstrip()):
+                    cap_bad.append("%s still opens with a tag or a handle" % net)
+
+                # the limit is respected
+                if len(out) > int(r.get("limit", 2200)):
+                    cap_bad.append("%s is %d over its own limit"
+                                   % (net, len(out) - int(r.get("limit", 2200))))
+
+            # The abbreviation rule is tested on the boundary finder directly. Testing
+            # it through the output proved nothing: trim slices the original text, so
+            # "W. W. Westcott" survives as a substring whether the rule works or not.
+            # A check that cannot fail is worse than no check, so this one asks the
+            # question that can: is the offset just after "tr." a legal place to cut?
+            probe = "Read tr. W. W. Westcott 1887 now. Then stop."
+            # Compare the CUTS trim would actually make, which is the prefix stripped,
+            # rather than raw offsets. Comparing offsets is how the first version of
+            # this check managed to fail on correct code.
+            cuts = set(probe[:b].rstrip() for b in _ac.boundaries(probe))
+            for bad in ("Read tr.", "Read tr. W.", "Read tr. W. W."):
+                if bad in cuts:
+                    cap_bad.append("boundaries() would cut after %r" % bad)
+            if "Read tr. W. W. Westcott 1887 now." not in cuts:
+                cap_bad.append("boundaries() missed the real sentence end")
+
+            if cap_bad:
+                report("FAIL", "an adapted caption is still made of her own words",
+                       "; ".join(cap_bad[:3]),
+                       "adapt_caption may cut, reorder and move. It may not write. Read "
+                       "the note above this check before relaxing any of it.")
+            else:
+                report("PASS", "an adapted caption is still made of her own words",
+                       "3 networks: nothing invented, the fold opens with words, every limit "
+                       "held, and boundaries() refuses to cut inside an abbreviation")
+        except Exception as _e:
+            report("FAIL", "an adapted caption is still made of her own words",
+                   "the check could not run: %s" % _e,
+                   "adapt_caption.py or specs/platforms.example.json is missing or broken.")
+
         # 6c. The sense check covers EVERY piece and names the file.
         #
         # The bug: clip_sense.py checks one clip, and handed a batch with no --pull it
