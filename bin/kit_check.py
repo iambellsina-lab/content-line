@@ -122,7 +122,13 @@ SCRIPTS = ["kit_common.py", "make_clip.py", "caption_video.py", "pick_pulls.py",
            # in it breaks the whole line at once. It gets real runs below as well.
            "run_line.py",
            # Added 2026-11-05. It is the only thing that checks what actually renders.
-           "sense_cuts.py"]
+           "sense_cuts.py",
+           # Added 2026-11-11. own_results.py and adapt_caption.py shipped on 11-11 and were
+           # not in this list, so a syntax error in either would have passed a kit_check.
+           "own_results.py", "adapt_caption.py",
+           # Added 2026-11-11 with the silent-clip entry point: a folder of clips with nobody
+           # speaking in it. shelf_index.py and broll_reel.py get real runs below.
+           "shelf_index.py", "voiceover_tape.py", "broll_reel.py"]
 
 # A filename a buyer can live with: lowercase, digits and single hyphens, no edges.
 GOOD_NAME = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -1628,6 +1634,226 @@ def smoke(ffmpeg, py, whisper, model, brand_arg):
             report("FAIL", "an adapted caption is still made of her own words",
                    "the check could not run: %s" % _e,
                    "adapt_caption.py or specs/platforms.example.json is missing or broken.")
+
+        # 6g. A reel with NO CAMERA ON HER covers every second, and the words pick the picture.
+        #
+        # This is the silent-clip entry point: a folder of boat footage with nobody
+        # speaking in it. Three things can go wrong and all three are silent.
+        #
+        # 1. THE CLOCK. Cut list segments and cards are TAPE seconds. B-roll layers are
+        #    FINISHED seconds, which is the segment durations added up in LIST order,
+        #    not tape order. Get that wrong and the picture runs a second out all the
+        #    way through, or the cards fall in no segment and the reel has one clip in
+        #    it. The fixture below puts the hook at tape 10.0 and the body at tape 2.0
+        #    on purpose, so a converter that quietly sorted into tape order fails here.
+        # 2. A HOLE IN THE PICTURE. Cards start after the first frame and stop before
+        #    the last, so beats taken straight off them leave the placeholder colour
+        #    showing at both ends. That is the one defect a viewer cannot miss.
+        # 3. AN INVENTED MATCH. A clip lands on a beat because a person wrote a keyword
+        #    on it that the beat's own words hit. Where nothing hits, it has to SAY so
+        #    rather than pass a rotation pick off as a decision.
+        broll_bad = []
+        try:
+            import broll_reel as _br
+            shelf_dir = os.path.join(tmp, "shelf-clips")
+            os.makedirs(shelf_dir, exist_ok=True)
+            fixture = [("sunrise.mp4", "0xD9A441", ["sunrise", "morning"], "sunrise over the deck"),
+                       ("water.mp4", "0x1E6FA8", ["water", "ocean"], "open water from the rail"),
+                       ("harbor.mp4", "0x3B7A4A", ["harbor", "port"], "the harbor from the window")]
+            for name, colour, _kw, _label in fixture:
+                rc, _o, err = run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+                                   "-f", "lavfi",
+                                   "-i", "color=c=%s:s=540x960:r=30:d=6" % colour,
+                                   "-pix_fmt", "yuv420p",
+                                   os.path.join(shelf_dir, name)], 120)
+                if rc != 0:
+                    raise RuntimeError("could not make the fixture clip %s: %s" % (name, tail(err, 1)))
+
+            shelf_path = os.path.join(tmp, "shelf.json")
+            rc, out, err = run([py, os.path.join(KIT, "bin", "shelf_index.py"), shelf_dir,
+                                "--out", shelf_path, "--frames", "0", "--json"], 180)
+            if rc != 0 or not os.path.isfile(shelf_path):
+                raise RuntimeError("shelf_index.py exited %s: %s" % (rc, tail(err or out, 1)))
+            with open(shelf_path, "r", encoding="utf-8") as fh:
+                shelf = json.load(fh)
+            if len(shelf.get("clips") or []) != 3:
+                broll_bad.append("shelf_index indexed %d of 3 clips" % len(shelf.get("clips") or []))
+            # It must have written the slot EMPTY. A tool that guesses a label off a
+            # filename would pass every other assertion here while inventing the one
+            # thing a person is supposed to decide.
+            if any(c.get("label") for c in shelf.get("clips") or []):
+                broll_bad.append("shelf_index labelled a clip by itself; labels need eyes")
+            by_name = {c.get("name"): c for c in shelf.get("clips") or []}
+            for name, _colour, kw, label in fixture:
+                if name in by_name:
+                    by_name[name]["label"] = label
+                    by_name[name]["keywords"] = kw
+            with open(shelf_path, "w", encoding="utf-8") as fh:
+                json.dump(shelf, fh, indent=2)
+
+            # Hook at tape 10.0, body at tape 2.0. Finished: 0-4 is the hook, 4-8 the body.
+            cards = []
+            t = 10.0
+            for text in ("the sunrise comes up", "over the top deck", "before anyone is",
+                         "awake on this morning"):
+                cards.append({"text": text, "start": round(t, 2), "end": round(t + 0.9, 2)})
+                t += 0.95
+            t = 2.0
+            for text in ("quarterly spreadsheet variance", "reconciliation ledger invoice",
+                         "amortised depreciation schedule", "procurement remittance advice"):
+                cards.append({"text": text, "start": round(t, 2), "end": round(t + 0.9, 2)})
+                t += 0.95
+            cuts_path = os.path.join(tmp, "reel-cuts.json")
+            with open(cuts_path, "w", encoding="utf-8") as fh:
+                json.dump({"source": "tape.mp4", "times": "source", "pieces": [{
+                    "piece": "A1", "filename": "reel-check", "duration": 8.0,
+                    "hook": {"text": "the sunrise comes up", "hold": 4.0},
+                    "segments": [{"start": 10.0, "end": 14.0, "role": "hook"},
+                                 {"start": 2.0, "end": 6.0, "role": "body"}],
+                    "cards": cards}]}, fh, indent=2)
+
+            spec_path = os.path.join(tmp, "reel-broll.json")
+            rc, out, err = run([py, os.path.join(KIT, "bin", "broll_reel.py"), cuts_path,
+                                "--shelf", shelf_path, "--out", spec_path, "--force", "--json"], 120)
+            if not os.path.isfile(spec_path):
+                raise RuntimeError("broll_reel.py exited %s and wrote no spec: %s"
+                                   % (rc, tail(err or out, 1)))
+            with open(spec_path, "r", encoding="utf-8") as fh:
+                layers = json.load(fh).get("layers") or []
+            if rc != 0:
+                broll_bad.append("broll_reel.py exited %s: %s" % (rc, tail(err or out, 1)))
+            if not layers:
+                raise RuntimeError("broll_reel.py wrote a spec with no layers in it")
+
+            layers = sorted(layers, key=lambda l: l["start"])
+            # 2. the picture covers 0 to the end, with no hole anywhere in between
+            if abs(layers[0]["start"]) > 0.01:
+                broll_bad.append("the picture starts at %.2fs, so the placeholder shows first"
+                                 % layers[0]["start"])
+            if abs(layers[-1]["end"] - 8.0) > 0.01:
+                broll_bad.append("the picture stops at %.2fs of an 8.00s piece"
+                                 % layers[-1]["end"])
+            cursor = 0.0
+            for layer in layers:
+                if layer["start"] - cursor > 0.01:
+                    broll_bad.append("no picture over %.2fs to %.2fs" % (cursor, layer["start"]))
+                cursor = max(cursor, layer["end"])
+
+            # 1. the clock: the cut between a tape-10.0 segment and a tape-2.0 segment
+            # lands at FINISHED 4.0, and a beat never spans it
+            if not any(abs(l["end"] - 4.0) < 0.01 for l in layers):
+                broll_bad.append("no layer ends at the 4.00s cut; the finished clock is wrong "
+                                 "or a beat ran across a segment join")
+
+            # 3. the words picked the picture, and an unmatched beat says so
+            opener = [l for l in layers if l["start"] < 3.99]
+            if not opener:
+                broll_bad.append("no layer covers the opening segment at all")
+            elif not all(os.path.basename(l["asset"]) == "sunrise.mp4" for l in opener):
+                broll_bad.append("the segment about sunrise and morning took %s"
+                                 % ", ".join(sorted(set(os.path.basename(l["asset"])
+                                                        for l in opener))))
+            elif any(l.get("_matched") is False for l in opener):
+                broll_bad.append("a beat whose words hit two keywords was marked unmatched")
+            body = [l for l in layers if l["start"] > 3.99]
+            if not body:
+                broll_bad.append("no layer covers the second segment")
+            elif not all(l.get("_matched") is False for l in body):
+                broll_bad.append("a beat about remittance advice was passed off as a keyword "
+                                 "match against a shelf of boat footage")
+
+            # An ordinary word out of a LABEL is a coincidence and may not claim a match.
+            # Found on a real render 2026-11-11: a clip labelled "the city coming into
+            # port" landed over "the shot I keep coming back to" on the word "coming",
+            # reported itself matched, and was wrong on screen. Tested on score()
+            # directly, in both directions, because a floor that nothing can fall under
+            # is not a floor.
+            label_only = {"tokens": [(w, 1.0) for w in _br.words_of("the city coming into port")]}
+            keyword_hit = {"tokens": [("harbor", 2.0)] + [(w, 1.0) for w in
+                                                          _br.words_of("the city coming into port")]}
+            beat = _br.words_of("the shot I keep coming back to is the one I almost did not take")
+            weak, weak_on = _br.score(label_only, beat)
+            if weak >= _br.MIN_SCORE:
+                broll_bad.append("one label word (%s) scored %.1f and would claim a match"
+                                 % (",".join(weak_on), weak))
+            if "coming" not in weak_on:
+                broll_bad.append("score() did not report WHICH word it matched on, so a "
+                                 "collision cannot be read off the spec")
+            strong, _on = _br.score(keyword_hit, _br.words_of("the harbor at last"))
+            if strong < _br.MIN_SCORE:
+                broll_bad.append("a real keyword hit scored %.1f and would be called too weak"
+                                 % strong)
+
+            # voiceover_tape.py is the other half of this door, and the one thing it must
+            # refuse is a file with no voice in it.
+            rc, out, err = run([py, os.path.join(KIT, "bin", "voiceover_tape.py"),
+                                os.path.join(shelf_dir, "water.mp4"),
+                                "--out", os.path.join(tmp, "nope.mp4")], 120)
+            if rc == 0:
+                broll_bad.append("voiceover_tape.py built a tape out of a file with no audio")
+
+            # THE HANDOFF, which is where a person walking this alone used to hit a wall.
+            # plan_clips.py SELECTS moments out of long form and refuses under 45 seconds,
+            # so it cannot make a cut list for a read script where every word is wanted.
+            # Measured on a 31.6s scripted transcript 2026-11-11: the default refused, and
+            # --min 5 --max 200 built a 9.05s piece out of it, throwing 22s away. So
+            # voiceover_tape.py writes the one piece itself, and if that ever stops
+            # happening the chain silently loses its second step.
+            vo_src = os.path.join(tmp, "voice.m4a")
+            rc, _o, err = run([ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
+                               "-f", "lavfi", "-i", "sine=frequency=240:sample_rate=48000",
+                               "-t", "9", "-c:a", "aac", vo_src], 120)
+            if rc != 0:
+                raise RuntimeError("could not make the voiceover fixture: %s" % tail(err, 1))
+            vo_tape = os.path.join(tmp, "vo-tape.mp4")
+            rc, out, err = run([py, os.path.join(KIT, "bin", "voiceover_tape.py"), vo_src,
+                                "--out", vo_tape, "--force", "--json"], 180)
+            if rc != 0:
+                broll_bad.append("voiceover_tape.py exited %s on a real voice file: %s"
+                                 % (rc, tail(err or out, 1)))
+            vo_cuts = os.path.join(tmp, "vo-tape-cuts.json")
+            if not os.path.isfile(vo_cuts):
+                broll_bad.append("voiceover_tape.py wrote no cut list, so step two of its own "
+                                 "printed next-steps has nothing to read")
+            else:
+                with open(vo_cuts, "r", encoding="utf-8") as fh:
+                    vo = json.load(fh)
+                vp = (vo.get("pieces") or [{}])[0]
+                segs = vp.get("segments") or []
+                if len(vo.get("pieces") or []) != 1 or len(segs) != 1:
+                    broll_bad.append("the voiceover cut list has %d piece(s) and %d segment(s); "
+                                     "a read script is one of each"
+                                     % (len(vo.get("pieces") or []), len(segs)))
+                elif abs(float(segs[0].get("start", -1))) > 0.01 \
+                        or abs(float(segs[0].get("end", 0)) - 9.0) > 0.35:
+                    broll_bad.append("the segment is %.2f to %.2f of a 9.00s voiceover, so words "
+                                     "are being dropped"
+                                     % (float(segs[0].get("start", -1)),
+                                        float(segs[0].get("end", 0))))
+                # and the thing downstream of it has to accept it
+                vo_spec = os.path.join(tmp, "vo-broll.json")
+                rc, out, err = run([py, os.path.join(KIT, "bin", "broll_reel.py"), vo_cuts,
+                                    "--shelf", shelf_path, "--out", vo_spec,
+                                    "--force", "--json"], 120)
+                if rc != 0 or not os.path.isfile(vo_spec):
+                    broll_bad.append("broll_reel.py exited %s on the cut list voiceover_tape.py "
+                                     "wrote: %s" % (rc, tail(err or out, 1)))
+
+            if broll_bad:
+                report("FAIL", "a reel with no camera on her covers every second",
+                       "; ".join(broll_bad[:3]),
+                       "Read the note above this check. The clock, the coverage and the "
+                       "honesty of a match are the three things it pins.")
+            else:
+                report("PASS", "a reel with no camera on her covers every second",
+                       "%d layer(s) over 8.00s: no hole, the cut lands at 4.00s from a tape "
+                       "10.0 hook, the words picked the clip, the beat that matched nothing "
+                       "says so, one label word is too weak to claim a match, and the cut "
+                       "list voiceover_tape.py writes is accepted downstream" % len(layers))
+        except Exception as _e:
+            report("FAIL", "a reel with no camera on her covers every second",
+                   "the check could not run: %s" % _e,
+                   "shelf_index.py, broll_reel.py or voiceover_tape.py is missing or broken.")
 
         # 6c. The sense check covers EVERY piece and names the file.
         #

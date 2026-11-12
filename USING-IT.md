@@ -316,11 +316,115 @@ stops the run immediately and nothing is spent.
 | `--keep-going` | render even when the sense check objects |
 | `--publish` `--schedule` `--when` `--networks` | reach outside this machine, each behind its own flag |
 
+## A reel with nobody talking on camera
+
+Every stage above starts from a transcript of somebody speaking to a lens. A folder
+of footage with no voice in it had no door into this kit, so a reel built entirely
+out of cutaways could not be made here. Three files are that door, and nothing else
+in the chain changed to make room for them.
+
+**The picture comes off a shelf. The voice is still hers, read aloud and recorded.**
+There is no text-to-speech anywhere in this kit and no script template either: a beat
+gets its clip because the words she actually says over it hit a keyword a person wrote
+on that clip.
+
+```
+# 1. her voice becomes a tape, AND the cut list, in one step
+python3 bin/voiceover_tape.py voice/take-01.m4a --out work/vo/tape.mp4
+
+# 2. the words. transcribe will suggest plan_clips as its next step: ignore that
+python3 bin/transcribe.py work/vo/tape.mp4
+python3 bin/cards_from_srt.py work/vo/tape.srt --cuts work/vo/tape-cuts.json
+python3 bin/hook_curate.py work/vo/tape-cuts.json --write
+python3 bin/caption_check.py work/vo/tape-cuts.json --transcript work/vo/tape.srt
+
+# 3. index the footage, then LOOK at the frames and label it
+python3 bin/shelf_index.py footage/cruise --out specs/shelf-cruise.json
+
+# 4. the words choose the pictures
+python3 bin/broll_reel.py work/vo/tape-cuts.json --shelf specs/shelf-cruise.json --out specs/broll-A1.json
+
+# 5. render, captions above the picture
+to_hyperframes.py work/vo/tape-cuts.json --out work/reel --broll specs/broll-A1.json
+```
+
+**`plan_clips.py` is not in that list and it is not an oversight.** It SELECTS moments
+out of long form and links them, and it refuses anything under 45 seconds. Measured on
+a 31.6s scripted transcript: the default run said *"no clip of 45 to 150 seconds could
+be built from 24 moments"*, `--min 25` refused the same way because the problem is the
+moment linking rather than the floor, and `--min 5 --max 200` did build a piece and it
+was **9.05 seconds long**, which threw away 22 seconds of a script where every word was
+wanted. **Selection is the wrong operation on a read script.** So `voiceover_tape.py`
+writes the one piece itself: one segment, zero to the tape duration, nothing dropped.
+It knows the duration and the path already, which is why it is the file that does it.
+
+**The cards are whisper's words rather than your script's**, which is why
+`caption_check.py` is in the list. On the walked run above it returned 6 findings
+including blockers on stranded negation, and a misheard line on screen is the error
+nobody forgives. `hook_curate.py` chooses a hook out of the spoken words and refuses
+when nothing in the opener qualifies, which is an answer rather than a failure.
+
+**Stage 3 is the one that costs attention, and it cannot be skipped.**
+`shelf_index.py` measures duration, shape, rotation and frame rate off every file,
+pulls three small stills per clip, and writes `"label": null`. It does not guess. A
+label scraped off a filename puts the wrong picture over her words and nothing further
+down the chain would catch it, so the slot stays empty until somebody opens the frames
+and fills it in. `broll_reel.py` refuses to run against an unlabelled shelf and says
+which clips are waiting.
+
+**Keywords are the mechanism, so write them as the words a script reaches for.** For a
+shot of open water, `ocean` and `water` are the obvious two. `quiet`, `alone` and
+`start` are the ones that do the work, because those are the words a voiceover uses
+when that picture belongs on screen. `specs/shelf.example.json` is a filled-in shelf
+to read.
+
+**What `broll_reel.py` guarantees, and what it only reports.**
+
+It guarantees the picture covers every second from zero to the end of the piece. Cards
+begin after the first frame and stop before the last, so beats taken straight off them
+would leave the placeholder colour showing at both ends; the first beat is pulled back
+to zero, the last is pushed to the end, and any silence in between is held by the clip
+before it. Where a hole would survive that, it writes no spec at all and names the gap.
+
+**A match is not a guarantee, and the notes exist to be read.** A clip reaches a beat
+on a word, and an ordinary word collides. Found on a real render 2026-11-11: a clip
+labelled *"the city coming into port"* landed over *"the shot I keep coming back to"* on
+the word **coming**, which is correct by these rules and wrong on screen. Two things are
+done about it and neither is a fix. One real keyword hit is needed before a layer claims
+a match, so a single word lifted out of the label no longer qualifies (`--min-score`,
+default 2.0, where a keyword counts 2 and a label word counts 1). And every layer carries
+`matched_on` naming the words it matched, so the collision reads off the spec at a glance:
+`TOO WEAK TO CALL A MATCH: only coming, which scored 1.0 under the 2.0 needed`.
+
+It reports, rather than fixes, four things: a beat whose words hit no keyword on the
+shelf (marked `"_matched": false` in the spec, so the fix is a keyword or a clip), a
+clip shorter than its beat (it freezes the last frame, or takes a second clip when the
+freeze would run past 1.2s), a horizontal clip in a vertical frame, and any clip on the
+shelf that went unused.
+
+**The time basis is the one thing to understand before hand-editing a spec.** Cut list
+segments and cards are tape seconds. B-roll layers are finished seconds, which is the
+segment durations added up in list order rather than tape order. `broll_reel.py` does
+that mapping and `bin/kit_check.py` pins it against a fixture whose hook sits at tape
+10.0 and whose body sits at tape 2.0, so a converter that quietly sorted into tape
+order fails the check.
+
+The spec it writes is ordinary. `bin/broll.py` reads the same shape, so the ffmpeg path
+works too, with the one caveat that path burns captions first and a full frame cutaway
+covers them. For a reel that is all cutaway, HyperFrames is the path that keeps the
+cards legible.
+
 ## What this does not do yet
 
-**No assets are sourced for you.** `--broll` lays on whatever a spec points at,
-and writing that spec is still a manual job. Nothing reads a Drive folder, and
-nothing chooses an image or a clip on your behalf.
+**No assets are sourced for you.** Nothing here reads a Drive folder and nothing
+downloads footage. What you own is what you can use.
+
+**Corrected 2026-11-11, and the superseded line is kept because it stood for five
+weeks:** *"`--broll` lays on whatever a spec points at, and writing that spec is still
+a manual job. Nothing reads a Drive folder, and nothing chooses an image or a clip on
+your behalf."* The second half of that is now wrong. `bin/broll_reel.py` chooses a clip
+per beat out of a labelled shelf, so the spec is written for you. The choosing is still
+grounded in a human label, which is the part that does not automate.
 
 **A refused hook card stays a truncation.** When no span in the opener qualifies,
 the card is left as the trimmed transcript with its ellipsis, and the piece's

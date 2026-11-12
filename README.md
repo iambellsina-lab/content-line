@@ -55,6 +55,13 @@ Answer the three questions first. Then five commands.
 | 5 | Read every card cold | `bin/caption_check.py` | instant, and it is not a gate |
 | 6 | Cut lists to finished clips | `bin/assemble_clip.py` | about 1.2x realtime per clip |
 
+**A reel with nobody talking on camera takes a different stage 1.** A folder of
+footage with no voice in it used to have no way into this chain. Record her reading,
+run `bin/voiceover_tape.py` on it, and stages 1 to 6 above are unchanged; then
+`bin/shelf_index.py` indexes the footage, you label it, and `bin/broll_reel.py` writes
+the b-roll layers out of the words she says. `USING-IT.md` has the five commands under
+"A reel with nobody talking on camera".
+
 Step 0 is not paperwork. On the first real batch through this method, every expensive correction
 traced back to one of those three questions going unasked: a whole cut list built in the wrong order
 and thrown away, a length band nobody had agreed to, and six things that must never appear found
